@@ -601,120 +601,168 @@
 
             <!-- BRANCH TAB 3: Movement / Sale Form -->
             <div id="branchTabMovement" class="hidden space-y-5">
-                <div class="max-w-xl mx-auto bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-                    <h3 class="font-bold text-slate-800 text-base border-b pb-3 flex items-center gap-2">
-                        <i class="fa-solid fa-cash-register text-brand-500"></i> Record Stock Movement / Customer Sale
-                    </h3>
-                    <form id="branchMovForm" onsubmit="handleBranchMovementSubmit(event)" class="space-y-4 text-xs">
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block font-semibold text-slate-600 mb-1">Date *</label>
-                                <input type="date" id="bMovDate" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm h-fit space-y-4">
+                        <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                            <i class="fa-solid fa-cash-register text-brand-500"></i> Record Stock Movement / Sale
+                        </h3>
+                        <form id="branchMovForm" onsubmit="handleBranchMovementSubmit(event)" class="space-y-4 text-xs">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block font-semibold text-slate-600 mb-1">Date *</label>
+                                    <input type="date" id="bMovDate" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none">
+                                </div>
+                                <div>
+                                    <label class="block font-semibold text-slate-600 mb-1">Movement Type *</label>
+                                    <select id="bMovType" onchange="updateBranchMovFormState()" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none font-semibold text-slate-700">
+                                        <option value="SOLD">SOLD (Customer Purchase)</option>
+                                        <option value="MANUAL_OUT">MANUAL OUT (Defect / Lost / Transfer)</option>
+                                        <option value="RESTOCK_IN">MANUAL IN (Local Stock Addition)</option>
+                                    </select>
+                                </div>
                             </div>
+
                             <div>
-                                <label class="block font-semibold text-slate-600 mb-1">Movement Type *</label>
-                                <select id="bMovType" onchange="updateBranchMovFormState()" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none font-semibold text-slate-700">
-                                    <option value="SOLD">SOLD (Customer Purchase)</option>
-                                    <option value="MANUAL_OUT">MANUAL OUT (Defect / Lost / Transfer)</option>
-                                    <option value="RESTOCK_IN">MANUAL IN (Local Stock Addition)</option>
+                                <label class="block font-semibold text-slate-600 mb-1">Product *</label>
+                                <select id="bMovProduct" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none">
+                                    <!-- Dynamic options -->
                                 </select>
                             </div>
-                        </div>
 
-                        <div>
-                            <label class="block font-semibold text-slate-600 mb-1">Product *</label>
-                            <select id="bMovProduct" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none">
-                                <!-- Dynamic options -->
-                            </select>
-                        </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block font-semibold text-slate-600 mb-1">Quantity *</label>
+                                    <input type="number" id="bMovQty" min="1" value="1" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none">
+                                </div>
+                                <div id="containerTotalAmount">
+                                    <label class="block font-semibold text-slate-600 mb-1">Total Selling Price (₱)</label>
+                                    <input type="number" id="bMovAmount" step="0.01" min="0" placeholder="0.00" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none">
+                                </div>
+                            </div>
 
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div id="containerPaymentDetails" class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t">
+                                <div>
+                                    <label class="block font-semibold text-slate-600 mb-1">Downpayment (₱)</label>
+                                    <input type="number" id="bMovDownpayment" step="0.01" min="0" placeholder="0.00" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none">
+                                </div>
+                                <div>
+                                    <label class="block font-semibold text-slate-600 mb-1">Payment Method</label>
+                                    <select id="bMovPaymentMethod" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none">
+                                        <option value="CASH">CASH (Updates Vault)</option>
+                                        <option value="GCASH">GCASH / ONLINE</option>
+                                        <option value="BANK_TRANSFER">BANK TRANSFER</option>
+                                    </select>
+                                </div>
+                            </div>
+
                             <div>
-                                <label class="block font-semibold text-slate-600 mb-1">Quantity *</label>
-                                <input type="number" id="bMovQty" min="1" value="1" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none">
+                                <label class="block font-semibold text-slate-600 mb-1">Notes / Customer Info</label>
+                                <input type="text" id="bMovNotes" placeholder="Customer name or reference details..." class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none">
                             </div>
-                            <div id="containerTotalAmount">
-                                <label class="block font-semibold text-slate-600 mb-1">Total Selling Price (₱)</label>
-                                <input type="number" id="bMovAmount" step="0.01" min="0" placeholder="0.00" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none">
-                            </div>
-                        </div>
 
-                        <div id="containerPaymentDetails" class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t">
-                            <div>
-                                <label class="block font-semibold text-slate-600 mb-1">Downpayment Collected (₱)</label>
-                                <input type="number" id="bMovDownpayment" step="0.01" min="0" placeholder="0.00" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none">
-                                <span class="text-[10px] text-slate-400">Leave 0 if fully paid.</span>
-                            </div>
-                            <div>
-                                <label class="block font-semibold text-slate-600 mb-1">Payment Method</label>
-                                <select id="bMovPaymentMethod" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none">
-                                    <option value="CASH">CASH (Updates Vault)</option>
-                                    <option value="GCASH">GCASH / ONLINE</option>
-                                    <option value="BANK_TRANSFER">BANK TRANSFER</option>
-                                </select>
-                            </div>
-                        </div>
+                            <button type="submit" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3 rounded-xl transition shadow-lg shadow-brand-500/20">
+                                Save Movement Record
+                            </button>
+                        </form>
+                    </div>
 
-                        <div>
-                            <label class="block font-semibold text-slate-600 mb-1">Notes / Customer Info</label>
-                            <input type="text" id="bMovNotes" placeholder="Customer name or reference details..." class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none">
+                    <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                        <div class="p-4 border-b border-slate-200">
+                            <h3 class="font-bold text-slate-800 text-sm">Stock Movement & Sales History</h3>
                         </div>
-
-                        <button type="submit" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3 rounded-xl transition shadow-lg shadow-brand-500/20">
-                            Save Movement Record
-                        </button>
-                    </form>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs">
+                                <thead class="bg-slate-100 text-slate-600 font-bold uppercase border-b border-slate-200">
+                                    <tr>
+                                        <th class="p-3">Date</th>
+                                        <th class="p-3">Type</th>
+                                        <th class="p-3">Product Name</th>
+                                        <th class="p-3 text-right">Qty</th>
+                                        <th class="p-3 text-right">Amount</th>
+                                        <th class="p-3">Notes</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="branchMovementHistoryTableBody" class="divide-y divide-slate-200">
+                                    <!-- Dynamic rows -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
 
             <!-- BRANCH TAB 4: Clear Case Swap -->
             <div id="branchTabSwap" class="hidden space-y-5">
-                <div class="max-w-lg mx-auto bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-                    <div>
-                        <h3 class="font-bold text-slate-800 text-base flex items-center gap-2">
-                            <i class="fa-solid fa-rotate text-brand-500"></i> Clear Case Swap Process
-                        </h3>
-                        <p class="text-xs text-slate-500">Deducts the removed case and adds the newly chosen case automatically.</p>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm h-fit space-y-4">
+                        <div>
+                            <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                                <i class="fa-solid fa-rotate text-brand-500"></i> Clear Case Swap Process
+                            </h3>
+                            <p class="text-xs text-slate-500 mt-1">Deducts removed case and adds newly chosen case.</p>
+                        </div>
+
+                        <form id="branchSwapForm" onsubmit="handleBranchSwapSubmit(event)" class="space-y-4 text-xs">
+                            <div>
+                                <label class="block font-semibold text-slate-600 mb-1">Swap Date *</label>
+                                <input type="date" id="swapDate" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none">
+                            </div>
+
+                            <div class="bg-rose-50 p-4 rounded-xl border border-rose-200 space-y-2">
+                                <span class="font-bold text-rose-700 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-minus-circle"></i> Case Removed (Deducted)
+                                </span>
+                                <select id="swapRemovedProduct" required class="w-full p-2.5 bg-white border border-rose-200 rounded-xl focus:ring-2 focus:ring-rose-500 outline-none">
+                                    <!-- Dynamic Clear Cases -->
+                                </select>
+                            </div>
+
+                            <div class="bg-emerald-50 p-4 rounded-xl border border-emerald-200 space-y-2">
+                                <span class="font-bold text-emerald-700 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-plus-circle"></i> Case Added (Added)
+                                </span>
+                                <select id="swapAddedProduct" required class="w-full p-2.5 bg-white border border-emerald-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none">
+                                    <!-- Dynamic Clear Cases -->
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block font-semibold text-slate-600 mb-1">Swap Quantity *</label>
+                                <input type="number" id="swapQty" min="1" value="1" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none">
+                            </div>
+
+                            <div>
+                                <label class="block font-semibold text-slate-600 mb-1">Notes / Reason</label>
+                                <input type="text" id="swapNotes" placeholder="e.g. Model exchange requested..." class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none">
+                            </div>
+
+                            <button type="submit" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3 rounded-xl transition shadow-lg shadow-brand-500/20">
+                                Execute Case Swap
+                            </button>
+                        </form>
                     </div>
 
-                    <form id="branchSwapForm" onsubmit="handleBranchSwapSubmit(event)" class="space-y-4 text-xs">
-                        <div>
-                            <label class="block font-semibold text-slate-600 mb-1">Swap Date *</label>
-                            <input type="date" id="swapDate" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none">
+                    <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                        <div class="p-4 border-b border-slate-200">
+                            <h3 class="font-bold text-slate-800 text-sm">Clear Case Swap History</h3>
                         </div>
-
-                        <div class="bg-rose-50 p-4 rounded-xl border border-rose-200 space-y-2">
-                            <span class="font-bold text-rose-700 flex items-center gap-1.5">
-                                <i class="fa-solid fa-minus-circle"></i> Case Removed (Stock Deducted)
-                            </span>
-                            <select id="swapRemovedProduct" required class="w-full p-2.5 bg-white border border-rose-200 rounded-xl focus:ring-2 focus:ring-rose-500 outline-none">
-                                <!-- Dynamic Clear Cases -->
-                            </select>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs">
+                                <thead class="bg-slate-100 text-slate-600 font-bold uppercase border-b border-slate-200">
+                                    <tr>
+                                        <th class="p-3">Date</th>
+                                        <th class="p-3">Removed Product</th>
+                                        <th class="p-3">Added Product</th>
+                                        <th class="p-3 text-right">Qty</th>
+                                        <th class="p-3">Notes</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="branchSwapHistoryTableBody" class="divide-y divide-slate-200">
+                                    <!-- Dynamic rows -->
+                                </tbody>
+                            </table>
                         </div>
-
-                        <div class="bg-emerald-50 p-4 rounded-xl border border-emerald-200 space-y-2">
-                            <span class="font-bold text-emerald-700 flex items-center gap-1.5">
-                                <i class="fa-solid fa-plus-circle"></i> Case Added (Stock Added)
-                            </span>
-                            <select id="swapAddedProduct" required class="w-full p-2.5 bg-white border border-emerald-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none">
-                                <!-- Dynamic Clear Cases -->
-                            </select>
-                        </div>
-
-                        <div>
-                            <label class="block font-semibold text-slate-600 mb-1">Swap Quantity *</label>
-                            <input type="number" id="swapQty" min="1" value="1" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none">
-                        </div>
-
-                        <div>
-                            <label class="block font-semibold text-slate-600 mb-1">Notes / Reason for Swap</label>
-                            <input type="text" id="swapNotes" placeholder="e.g. Model exchange requested by customer" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none">
-                        </div>
-
-                        <button type="submit" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3 rounded-xl transition shadow-lg shadow-brand-500/20">
-                            Execute Case Swap
-                        </button>
-                    </form>
+                    </div>
                 </div>
             </div>
 
@@ -987,24 +1035,28 @@
                 });
 
                 // 3. Fetch Stock Movements
-                const { data: movData } = await supabaseClient
-                    .from('stock_movements')
-                    .select('*')
-                    .order('date', { ascending: false });
-                stockMovements = (movData || []).map(m => ({
-                    id: m.id,
-                    date: m.date,
-                    branch: m.branch,
-                    productId: m.product_id,
-                    category: m.category,
-                    type: m.type,
-                    direction: m.direction,
-                    qty: m.qty,
-                    amount: parseFloat(m.amount) || 0,
-                    downpayment: parseFloat(m.downpayment) || 0,
-                    paymentMethod: m.payment_method,
-                    notes: m.notes
-                }));
+const { data: movData, error: movError } = await supabaseClient
+    .from('stock_movements')
+    .select('*')
+    .order('date', { ascending: false });
+
+console.log('MOVEMENTS DATA:', movData);
+console.log('MOVEMENTS ERROR:', movError);
+
+stockMovements = (movData || []).map(m => ({
+    id: m.id,
+    date: m.date,
+    branch: m.branch,
+    productId: m.product_id,
+    category: m.category,
+    type: m.type,
+    direction: m.direction,
+    qty: m.qty,
+    amount: parseFloat(m.amount) || 0,
+    downpayment: parseFloat(m.downpayment) || 0,
+    paymentMethod: m.payment_method,
+    notes: m.notes
+}));
 
                 // 4. Fetch Restock Requests
                 const { data: reqData } = await supabaseClient
@@ -1057,6 +1109,8 @@
                 renderBranchDashboard();
                 renderBranchInventory();
                 populateBranchProductSelects();
+                renderBranchMovementHistory();
+                renderBranchSwapHistory();
                 renderBranchExpenses();
                 renderBranchRestockLog();
             }
@@ -1760,6 +1814,30 @@
             fetchCloudData();
         }
 
+        function renderBranchMovementHistory() {
+            const tbody = document.getElementById('branchMovementHistoryTableBody');
+            const branchMovs = stockMovements.filter(m => m.branch === currentRole && m.type !== 'SWAP');
+
+            if (branchMovs.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-slate-400">No stock movements recorded.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = branchMovs.map(m => {
+                const prod = products.find(p => p.id === m.productId) || { name: 'Unknown' };
+                return `
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="p-3 font-medium text-slate-700">${m.date}</td>
+                        <td class="p-3"><span class="bg-brand-50 text-brand-700 px-2 py-0.5 rounded text-[10px] font-bold">${m.type}</span></td>
+                        <td class="p-3 font-semibold text-slate-800">${prod.name}</td>
+                        <td class="p-3 text-right font-bold ${m.direction === 'IN' ? 'text-emerald-600' : 'text-rose-600'}">${m.direction === 'IN' ? '+' : '-'}${m.qty}</td>
+                        <td class="p-3 text-right font-semibold">₱${(m.amount || 0).toLocaleString('en-US', {minimumFractionDigits:2})}</td>
+                        <td class="p-3 text-slate-500">${m.notes || '-'}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
         async function handleBranchSwapSubmit(e) {
             e.preventDefault();
             const date = document.getElementById('swapDate').value;
@@ -1800,6 +1878,33 @@
             document.getElementById('branchSwapForm').reset();
             setTodayDateInputs();
             fetchCloudData();
+        }
+
+        function renderBranchSwapHistory() {
+            const tbody = document.getElementById('branchSwapHistoryTableBody');
+            const swapsOut = stockMovements.filter(m => m.branch === currentRole && m.type === 'SWAP' && m.direction === 'OUT');
+
+            if (swapsOut.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-6 text-slate-400">No clear case swaps recorded.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = swapsOut.map(m => {
+                const remProd = products.find(p => p.id === m.productId) || { name: 'Unknown' };
+                // Find matching IN movement created at the same time
+                const addMov = stockMovements.find(x => x.branch === currentRole && x.type === 'SWAP' && x.direction === 'IN' && x.date === m.date && Math.abs(parseInt(x.id.split('-')[1]) - parseInt(m.id.split('-')[1])) < 500);
+                const addProd = addMov ? (products.find(p => p.id === addMov.productId) || { name: 'Unknown' }) : { name: 'Unknown' };
+
+                return `
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="p-3 font-medium text-slate-700">${m.date}</td>
+                        <td class="p-3 font-semibold text-rose-600">${remProd.name}</td>
+                        <td class="p-3 font-semibold text-emerald-600">${addProd.name}</td>
+                        <td class="p-3 text-right font-bold text-slate-900">${m.qty} pcs</td>
+                        <td class="p-3 text-slate-500">${m.notes || '-'}</td>
+                    </tr>
+                `;
+            }).join('');
         }
 
         async function handleBranchExpenseSubmit(e) {
