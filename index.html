@@ -1211,37 +1211,50 @@
             showToast("Exported CSV successfully.");
         }
 
-        function renderAdminRestockRequests() {
-            const tbody = document.getElementById('adminRestockTableBody');
-            const pending = restockRequests.filter(r => r.status === 'PENDING');
+        async function renderAdminRestockRequests() {
+    const tbody = document.getElementById('adminRestockTableBody');
+    
+    // Fetch latest restock requests directly from Supabase cloud
+    const { data: cloudRestocks, error } = await supabase
+        .from('restock_requests')
+        .select('*')
+        .order('date', { ascending: false });
 
-            if (pending.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" class="text-center py-6 text-slate-400">No pending restock requests.</td></tr>`;
-                return;
-            }
+    if (!error && cloudRestocks) {
+        restockRequests = cloudRestocks; // Update global array with live cloud data
+    }
 
-            tbody.innerHTML = pending.map(r => {
-                const prod = products.find(p => p.id === r.productId) || { name: 'Unknown', category: 'GENERAL' };
-                return `
-                    <tr class="hover:bg-slate-50 transition">
-                        <td class="p-3 text-slate-700">${r.date}</td>
-                        <td class="p-3 font-bold text-slate-900">${r.branch}</td>
-                        <td class="p-3"><span class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-[10px] font-semibold">${prod.category}</span></td>
-                        <td class="p-3 font-semibold text-slate-800">${prod.name}</td>
-                        <td class="p-3 text-right font-bold text-brand-600 text-sm">${r.qty} pcs</td>
-                        <td class="p-3 text-slate-500">${r.notes || '-'}</td>
-                        <td class="p-3 text-center space-x-1">
-                            <button onclick="approveRestockRequest('${r.id}')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-semibold px-3 py-1.5 rounded-lg transition shadow-sm">
-                                Approve & Add Stock
-                            </button>
-                            <button onclick="rejectRestockRequest('${r.id}')" class="bg-rose-50 hover:bg-rose-100 text-rose-600 font-semibold px-3 py-1.5 rounded-lg text-[11px] border border-rose-200 transition">
-                                Reject
-                            </button>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
-        }
+    updatePendingRestockBadge();
+
+    const pending = restockRequests.filter(r => r.status === 'PENDING');
+
+    if (pending.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center py-6 text-slate-400">No pending restock requests.</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = pending.map(r => {
+        const prod = products.find(p => p.id === r.product_id || p.id === r.productId) || { name: 'Unknown', category: 'GENERAL' };
+        return `
+            <tr class="hover:bg-slate-50">
+                <td class="p-3 text-slate-700">${r.date}</td>
+                <td class="p-3 font-bold text-slate-900">${r.branch}</td>
+                <td class="p-3"><span class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-[10px] font-semibold">${prod.category}</span></td>
+                <td class="p-3 font-semibold text-slate-800">${prod.name}</td>
+                <td class="p-3 text-right font-bold text-brand-600 text-sm">${r.qty} pcs</td>
+                <td class="p-3 text-slate-500">${r.notes || '-'}</td>
+                <td class="p-3 text-center space-x-1">
+                    <button onclick="approveRestockRequest('${r.id}')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-semibold px-3 py-1.5 rounded transition shadow-sm">
+                        Approve & Add Stock
+                    </button>
+                    <button onclick="rejectRestockRequest('${r.id}')" class="bg-rose-50 hover:bg-rose-100 text-rose-600 font-semibold px-3 py-1.5 rounded text-[11px] border border-rose-200 transition">
+                        Reject
+                    </button>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
 
         async function approveRestockRequest(id) {
             const req = restockRequests.find(r => r.id === id);
@@ -1844,26 +1857,41 @@
         }
 
         async function handleBranchRestockSubmit(e) {
-            e.preventDefault();
-            const date = document.getElementById('reqDate').value;
-            const productId = document.getElementById('reqProduct').value;
-            const qty = parseInt(document.getElementById('reqQty').value) || 1;
-            const notes = document.getElementById('reqNotes').value.trim();
+    e.preventDefault();
+    const date = document.getElementById('reqDate').value;
+    const productId = document.getElementById('reqProduct').value;
+    const qty = parseInt(document.getElementById('reqQty').value) || 1;
+    const notes = document.getElementById('reqNotes').value.trim();
 
-            await supabaseClient.from('restock_requests').insert([{
-                id: 'REQ-' + Date.now(),
-                date,
-                branch: currentRole,
-                product_id: productId,
-                qty,
-                notes,
-                status: 'PENDING'
-            }]);
+    const newReq = {
+        id: 'REQ-' + Date.now(),
+        date,
+        branch: currentRole,
+        product_id: productId, // matching Supabase column name
+        qty,
+        notes,
+        status: 'PENDING'
+    };
 
-            showToast("Restock request submitted to Cloud.");
-            document.getElementById('branchRestockForm').reset();
-            setTodayDateInputs();
-            fetchCloudData();
+    // Save to Supabase Cloud
+    const { error } = await supabase.from('restock_requests').insert([newReq]);
+
+    if (error) {
+        showToast("Error saving to cloud: " + error.message, "error");
+        return;
+    }
+
+    showToast("Restock request submitted to Cloud.");
+    document.getElementById('branchRestockForm').reset();
+    setTodayDateInputs();
+    
+    // Refresh data from cloud to update history log instantly
+    if (typeof loadDataFromCloud === 'function') {
+        loadDataFromCloud();
+    } else {
+        location.reload(); // Simple fallback reload to display updated cloud history
+    }
+}
         }
 
         function renderBranchRestockLog() {
