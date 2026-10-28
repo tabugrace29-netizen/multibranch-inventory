@@ -3,13 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Multi-Branch Inventory & Sales System</title>
+    <title>Multi-Branch Inventory & Sales Management System</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -33,272 +34,122 @@
     </script>
     <style>
         body { font-family: 'Inter', sans-serif; }
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #f1f1f1; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     </style>
-    <!-- Supabase JS Client -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col antialiased selection:bg-brand-500 selection:text-white">
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
 
-    <!-- LOGIN MODAL -->
+    <!-- LOGIN SCREEN -->
     <div id="loginScreen" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-[9999] p-4">
-        <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md border border-slate-100 transform transition-all">
-            <div class="text-center mb-6">
-                <div class="w-14 h-14 bg-brand-500 text-white rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-lg shadow-brand-500/30">
+        <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md border border-slate-100 space-y-5">
+            <div class="text-center">
+                <div class="inline-flex bg-brand-500 text-white p-3.5 rounded-2xl shadow-lg mb-3">
                     <i class="fa-solid fa-boxes-stacked text-2xl"></i>
                 </div>
-                <h2 class="text-2xl font-extrabold text-slate-900">Cloud Login</h2>
+                <h2 class="text-2xl font-bold text-slate-900">Cloud Login</h2>
                 <p class="text-xs text-slate-500 mt-1">Select workspace & authenticate via Supabase</p>
             </div>
 
             <div class="space-y-4">
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1">Branch / Role</label>
-                    <select id="loginBranch" class="w-full border border-slate-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none bg-slate-50 font-semibold text-slate-700">
-                        <option value="ADMIN">🔐 ADMIN WORKSPACE</option>
-                        <optgroup label="Branches">
-                            <option value="BATAAN">📍 BATAAN</option>
-                            <option value="CONCEPCION">📍 CONCEPCION</option>
-                            <option value="CAPAS">📍 CAPAS</option>
-                            <option value="GUIMBA">📍 GUIMBA</option>
-                            <option value="PANIQUI">📍 PANIQUI</option>
-                            <option value="ONE">📍 BRANCH ONE</option>
-                            <option value="TWO">📍 BRANCH TWO</option>
-                            <option value="THREE">📍 BRANCH THREE</option>
-                            <option value="FOUR">📍 BRANCH FOUR</option>
-                            <option value="FIVE">📍 BRANCH FIVE</option>
-                        </optgroup>
+                    <select id="loginBranch" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-brand-500 outline-none">
+                        <option value="ADMIN">ADMIN WORKSPACE</option>
+                        <option value="BATAAN">BATAAN</option>
+                        <option value="CONCEPCION">CONCEPCION</option>
+                        <option value="CAPAS">CAPAS</option>
+                        <option value="GUIMBA">GUIMBA</option>
+                        <option value="PANIQUI">PANIQUI</option>
+                        <option value="ONE">ONE</option>
+                        <option value="TWO">TWO</option>
+                        <option value="THREE">THREE</option>
+                        <option value="FOUR">FOUR</option>
+                        <option value="FIVE">FIVE</option>
                     </select>
                 </div>
 
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1">Password</label>
                     <div class="relative">
-                        <input type="password" id="loginPassword" placeholder="Enter password..." class="w-full border border-slate-200 rounded-xl p-3 pr-10 text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none bg-slate-50">
+                        <input type="password" id="loginPassword" placeholder="Enter workspace password" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 pr-10 text-xs font-medium text-slate-800 focus:ring-2 focus:ring-brand-500 outline-none">
                         <button type="button" onclick="togglePasswordVisibility()" class="absolute right-3 top-3.5 text-slate-400 hover:text-slate-600">
-                            <i class="fa-solid fa-eye" id="pwdToggleIcon"></i>
+                            <i class="fa-solid fa-eye" id="pwdEyeIcon"></i>
                         </button>
                     </div>
                 </div>
 
-                <div id="loginError" class="hidden text-xs text-rose-600 font-semibold bg-rose-50 p-2.5 rounded-lg border border-rose-200 text-center">
-                    Invalid credentials or Supabase network error.
+                <div id="loginErrorMsg" class="hidden bg-rose-50 border border-rose-200 text-rose-600 text-xs p-3 rounded-xl font-medium text-center">
+                    Invalid branch or password.
                 </div>
 
-                <button id="loginBtn" onclick="loginSystem()" class="w-full bg-brand-500 hover:bg-brand-600 active:scale-[0.98] text-white font-bold rounded-xl py-3 text-sm transition shadow-lg shadow-brand-500/25 flex justify-center items-center gap-2">
-                    <span>Sign In</span>
+                <button onclick="loginSystem()" id="btnLogin" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-semibold py-3.5 rounded-xl text-xs transition shadow-md flex items-center justify-center gap-2">
+                    <span id="btnText">Sign In</span>
+                    <i class="fa-solid fa-spinner fa-spin hidden" id="btnSpinner"></i>
                 </button>
+            </div>
 
-                <div class="pt-3 border-t text-center text-[11px] text-slate-400">
-                    Synced with Supabase Cloud DB
-                </div>
+            <div class="text-center border-t border-slate-100 pt-3">
+                <span class="text-[10px] text-slate-400">Synced with Supabase Cloud DB</span>
             </div>
         </div>
     </div>
 
-    <!-- TOP NAVIGATION -->
-    <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
+    <!-- TOP NAV BAR -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16 items-center">
                 <div class="flex items-center gap-3">
                     <div class="bg-brand-500 text-white p-2.5 rounded-xl shadow-md">
-                        <i class="fa-solid fa-boxes-stacked text-xl"></i>
+                        <i class="fa-solid font-bold fa-boxes-stacked text-xl"></i>
                     </div>
                     <div>
-                        <h1 class="font-extrabold text-lg leading-tight text-slate-900 tracking-tight">Multi-Branch System</h1>
-                        <p class="text-xs text-brand-600 font-semibold flex items-center gap-1" id="headerRoleBadge">
-                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                            <span>Administrator Workspace</span>
-                        </p>
+                        <h1 class="font-bold text-lg leading-tight text-slate-900">Multi-Branch System</h1>
+                        <p class="text-xs text-slate-500 font-medium" id="headerRoleBadge">Inventory & Sales Hub</p>
                     </div>
                 </div>
 
                 <div class="flex items-center gap-3">
-                    <button onclick="fetchCloudData()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-2 px-3 rounded-xl border border-slate-200 transition flex items-center gap-1.5" title="Refresh Live Data">
-                        <i class="fa-solid fa-arrows-rotate" id="refreshIcon"></i> Sync Cloud
+                    <button onclick="loadDataFromCloud()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium py-2 px-3 rounded-lg border border-slate-200 transition">
+                        <i class="fa-solid fa-cloud-arrow-down mr-1"></i> Sync Cloud
                     </button>
-                    <div class="hidden sm:flex items-center gap-2 bg-slate-100 rounded-xl p-1.5 border border-slate-200 text-xs font-semibold text-slate-700">
-                        <i class="fa-solid fa-user-circle text-slate-400 ml-1.5 text-sm"></i>
-                        <span id="activeUserLabel">ADMIN</span>
-                    </div>
-                    <button onclick="logoutSystem()" class="text-xs bg-rose-50 hover:bg-rose-100 text-rose-600 font-semibold py-2 px-3 rounded-xl border border-rose-200 transition flex items-center gap-1.5">
-                        <i class="fa-solid fa-right-from-bracket"></i> Logout
+                    <button onclick="logoutSystem()" class="text-xs bg-rose-500 hover:bg-rose-600 text-white font-medium py-2 px-3 rounded-lg transition">
+                        Logout
                     </button>
                 </div>
             </div>
         </div>
     </header>
 
-    <!-- NOTIFICATION TOASTS -->
+    <!-- NOTIFICATION CONTAINER -->
     <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2"></div>
 
-    <!-- MAIN WORKSPACE CONTENT -->
+    <!-- MAIN APP CONTENT CONTAINER -->
     <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
 
         <!-- ==================== ADMIN WORKSPACE ==================== -->
-        <div id="adminWorkspace" class="space-y-6">
-            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-1.5 flex flex-wrap gap-1 text-xs sm:text-sm font-semibold">
-                <button onclick="switchAdminTab('movement')" id="tab-admin-movement" class="px-4 py-2.5 rounded-xl transition flex items-center gap-2 bg-brand-50 text-brand-700 font-bold border border-brand-200/50 shadow-sm">
-                    <i class="fa-solid fa-right-left"></i> Stock Movement
-                </button>
-                <button onclick="switchAdminTab('restock')" id="tab-admin-restock" class="px-4 py-2.5 rounded-xl transition flex items-center gap-2 text-slate-600 hover:bg-slate-50">
+        <div id="adminWorkspace" class="hidden space-y-6">
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-1 flex flex-wrap gap-2 text-sm font-medium">
+                <button onclick="switchAdminTab('restock')" id="tab-admin-restock" class="px-4 py-2.5 rounded-lg transition flex items-center gap-2 bg-brand-50 text-brand-600 font-semibold">
                     <i class="fa-solid fa-truck-ramp-box"></i> Restock Requests 
-                    <span id="pendingRestockBadge" class="bg-rose-500 text-white text-[10px] px-2 py-0.5 rounded-full font-extrabold hidden">0</span>
-                </button>
-                <button onclick="switchAdminTab('products')" id="tab-admin-products" class="px-4 py-2.5 rounded-xl transition flex items-center gap-2 text-slate-600 hover:bg-slate-50">
-                    <i class="fa-solid fa-box"></i> Product Management
-                </button>
-                <button onclick="switchAdminTab('stock')" id="tab-admin-stock" class="px-4 py-2.5 rounded-xl transition flex items-center gap-2 text-slate-600 hover:bg-slate-50">
-                    <i class="fa-solid fa-warehouse"></i> Live Stock Tracker
-                </button>
-                <button onclick="switchAdminTab('sales')" id="tab-admin-sales" class="px-4 py-2.5 rounded-xl transition flex items-center gap-2 text-slate-600 hover:bg-slate-50">
-                    <i class="fa-solid fa-chart-line"></i> Sales Journal
-                </button>
-                <button onclick="switchAdminTab('cash')" id="tab-admin-cash" class="px-4 py-2.5 rounded-xl transition flex items-center gap-2 text-slate-600 hover:bg-slate-50">
-                    <i class="fa-solid fa-vault"></i> Branch Vaults
+                    <span id="pendingRestockBadge" class="bg-rose-500 text-white text-xs px-2 py-0.5 rounded-full font-bold hidden">0</span>
                 </button>
             </div>
 
-            <!-- ADMIN TAB 1: Stock Movements -->
-            <div id="adminTabMovement" class="space-y-5">
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-                        <div class="text-slate-500 text-xs font-semibold uppercase tracking-wider">Total Movements</div>
-                        <div class="text-2xl font-extrabold text-slate-900 mt-1" id="metricTotalMovements">0</div>
-                    </div>
-                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-emerald-500">
-                        <div class="text-slate-500 text-xs font-semibold uppercase tracking-wider">Total Stock IN</div>
-                        <div class="text-2xl font-extrabold text-emerald-600 mt-1" id="metricTotalIn">+0</div>
-                    </div>
-                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-rose-500">
-                        <div class="text-slate-500 text-xs font-semibold uppercase tracking-wider">Total Stock OUT / SOLD</div>
-                        <div class="text-2xl font-extrabold text-rose-600 mt-1" id="metricTotalOut">-0</div>
-                    </div>
-                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-brand-500">
-                        <div class="text-slate-500 text-xs font-semibold uppercase tracking-wider">Net Movement</div>
-                        <div class="text-2xl font-extrabold text-brand-600 mt-1" id="metricNetMovement">0</div>
-                    </div>
-                </div>
-
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-                    <div class="flex flex-wrap justify-between items-center gap-3">
-                        <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2"><i class="fa-solid fa-filter text-brand-500"></i> Filters</h3>
-                        <div class="flex items-center gap-2">
-                            <button onclick="exportStockMovementsCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-4 py-2 rounded-xl transition flex items-center gap-1.5 shadow-sm">
-                                <i class="fa-solid fa-file-csv"></i> Export CSV
-                            </button>
-                            <button onclick="deleteSelectedMovements()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-xs font-semibold px-3 py-2 rounded-xl transition flex items-center gap-1.5">
-                                <i class="fa-solid fa-trash-can"></i> Delete Selected
-                            </button>
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 text-xs">
-                        <div>
-                            <label class="block font-semibold text-slate-500 mb-1">Branch</label>
-                            <select id="filterMovBranch" onchange="renderAdminMovements()" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 focus:ring-2 focus:ring-brand-500 outline-none">
-                                <option value="">All Branches</option>
-                                <option value="BATAAN">BATAAN</option>
-                                <option value="CONCEPCION">CONCEPCION</option>
-                                <option value="CAPAS">CAPAS</option>
-                                <option value="GUIMBA">GUIMBA</option>
-                                <option value="PANIQUI">PANIQUI</option>
-                                <option value="ONE">BRANCH ONE</option>
-                                <option value="TWO">BRANCH TWO</option>
-                                <option value="THREE">BRANCH THREE</option>
-                                <option value="FOUR">BRANCH FOUR</option>
-                                <option value="FIVE">BRANCH FIVE</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block font-semibold text-slate-500 mb-1">Category</label>
-                            <select id="filterMovCategory" onchange="renderAdminMovements()" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 focus:ring-2 focus:ring-brand-500 outline-none">
-                                <option value="">All Categories</option>
-                                <option value="GENERAL UNITS">GENERAL UNITS</option>
-                                <option value="CLEAR CASE">CLEAR CASE</option>
-                                <option value="SILICONE CASE">SILICONE CASE</option>
-                                <option value="TEMPERED GLASS">TEMPERED GLASS</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block font-semibold text-slate-500 mb-1">Type</label>
-                            <select id="filterMovType" onchange="renderAdminMovements()" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 focus:ring-2 focus:ring-brand-500 outline-none">
-                                <option value="">All Types</option>
-                                <option value="SOLD">SOLD</option>
-                                <option value="RESTOCK_IN">RESTOCK IN</option>
-                                <option value="SWAP">SWAP</option>
-                                <option value="MANUAL_OUT">MANUAL OUT</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block font-semibold text-slate-500 mb-1">Direction</label>
-                            <select id="filterMovDirection" onchange="renderAdminMovements()" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 focus:ring-2 focus:ring-brand-500 outline-none">
-                                <option value="">All Directions</option>
-                                <option value="IN">IN (+)</option>
-                                <option value="OUT">OUT (-)</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block font-semibold text-slate-500 mb-1">Start Date</label>
-                            <input type="date" id="filterMovStartDate" onchange="renderAdminMovements()" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 focus:ring-2 focus:ring-brand-500 outline-none">
-                        </div>
-                        <div>
-                            <label class="block font-semibold text-slate-500 mb-1">End Date</label>
-                            <input type="date" id="filterMovEndDate" onchange="renderAdminMovements()" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 focus:ring-2 focus:ring-brand-500 outline-none">
-                        </div>
-                    </div>
-                </div>
-
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-xs">
-                            <thead class="bg-slate-100 text-slate-600 font-bold uppercase border-b border-slate-200">
-                                <tr>
-                                    <th class="p-3 w-10 text-center">
-                                        <input type="checkbox" id="selectAllMov" onclick="toggleSelectAllMovements(this)" class="rounded border-slate-300">
-                                    </th>
-                                    <th class="p-3">Date</th>
-                                    <th class="p-3">Branch</th>
-                                    <th class="p-3">Category</th>
-                                    <th class="p-3">Product</th>
-                                    <th class="p-3">Type</th>
-                                    <th class="p-3">Dir</th>
-                                    <th class="p-3 text-right">Qty</th>
-                                    <th class="p-3 text-right">Amount</th>
-                                    <th class="p-3">Notes</th>
-                                    <th class="p-3 text-center">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody id="adminMovementTableBody" class="divide-y divide-slate-200">
-                                <!-- Dynamic rows -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ADMIN TAB 2: Restock Requests -->
-            <div id="adminTabRestock" class="hidden space-y-4">
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-wrap justify-between items-center gap-4">
+            <!-- ADMIN TAB: Restock Request Approval -->
+            <div id="adminTabRestock" class="space-y-4">
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex justify-between items-center">
                     <div>
-                        <h3 class="font-bold text-slate-800 text-base">Pending Restock Approvals</h3>
-                        <p class="text-xs text-slate-500">Approving updates branch stock automatically in Supabase.</p>
+                        <h3 class="font-bold text-slate-800 text-lg">Pending Restock Requests</h3>
+                        <p class="text-xs text-slate-500">Approve requests submitted from branch portals.</p>
                     </div>
-                    <button onclick="approveAllRestockRequests()" class="bg-brand-500 hover:bg-brand-600 text-white font-semibold px-4 py-2.5 rounded-xl text-xs transition shadow-sm flex items-center gap-1.5">
-                        <i class="fa-solid fa-check-double"></i> Approve All Pending
-                    </button>
                 </div>
 
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-xs">
-                            <thead class="bg-slate-100 text-slate-600 font-bold uppercase border-b border-slate-200">
+                            <thead class="bg-slate-100 text-slate-600 font-semibold uppercase border-b border-slate-200">
                                 <tr>
                                     <th class="p-3">Requested Date</th>
                                     <th class="p-3">Branch</th>
-                                    <th class="p-3">Category</th>
                                     <th class="p-3">Product Name</th>
                                     <th class="p-3 text-right">Requested Qty</th>
                                     <th class="p-3">Reason / Notes</th>
@@ -312,509 +163,68 @@
                     </div>
                 </div>
             </div>
-
-            <!-- ADMIN TAB 3: Products -->
-            <div id="adminTabProducts" class="hidden space-y-5">
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm h-fit">
-                        <h3 class="font-bold text-slate-800 text-base mb-4 flex items-center gap-2" id="prodFormTitle">
-                            <i class="fa-solid fa-plus-circle text-brand-500"></i> Add New Product
-                        </h3>
-                        <form id="productForm" onsubmit="handleProductSubmit(event)" class="space-y-4 text-xs">
-                            <input type="hidden" id="prodId">
-                            <div>
-                                <label class="block font-semibold text-slate-600 mb-1">Product Name *</label>
-                                <input type="text" id="prodName" required placeholder="e.g. iPhone 15 Pro Clear Case" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none">
-                            </div>
-                            <div>
-                                <label class="block font-semibold text-slate-600 mb-1">Category *</label>
-                                <select id="prodCategory" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none">
-                                    <option value="GENERAL UNITS">GENERAL UNITS</option>
-                                    <option value="CLEAR CASE">CLEAR CASE</option>
-                                    <option value="SILICONE CASE">SILICONE CASE</option>
-                                    <option value="TEMPERED GLASS">TEMPERED GLASS</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block font-semibold text-slate-600 mb-1">Selling Price (₱)</label>
-                                <input type="number" id="prodPrice" step="0.01" min="0" placeholder="0.00" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none">
-                            </div>
-                            <div>
-                                <label class="block font-semibold text-slate-600 mb-1">Initial Stock for All Branches</label>
-                                <input type="number" id="prodInitialStock" min="0" value="10" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none">
-                            </div>
-                            <div class="flex items-center gap-2 pt-2">
-                                <button type="submit" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3 rounded-xl transition shadow-md">Save Product</button>
-                                <button type="button" onclick="resetProductForm()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold py-3 px-4 rounded-xl transition">Cancel</button>
-                            </div>
-                        </form>
-                    </div>
-
-                    <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-                        <div class="p-4 border-b border-slate-200 flex justify-between items-center">
-                            <h3 class="font-bold text-slate-800 text-sm">Product Directory</h3>
-                            <span class="text-xs bg-slate-100 px-2.5 py-1 rounded-full text-slate-600 font-bold" id="productCountBadge">0 Products</span>
-                        </div>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left text-xs">
-                                <thead class="bg-slate-100 text-slate-600 font-bold uppercase border-b border-slate-200">
-                                    <tr>
-                                        <th class="p-3">Category</th>
-                                        <th class="p-3">Product Name</th>
-                                        <th class="p-3 text-right">Price</th>
-                                        <th class="p-3 text-center">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="adminProductsTableBody" class="divide-y divide-slate-200">
-                                    <!-- Dynamic rows -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ADMIN TAB 4: Stock Tracker -->
-            <div id="adminTabStock" class="hidden space-y-4">
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-wrap gap-4 justify-between items-center">
-                    <div>
-                        <h3 class="font-bold text-slate-800 text-base">Live Multi-Branch Stock Overview</h3>
-                        <p class="text-xs text-slate-500">Real-time counts synced with Supabase cloud.</p>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <select id="stockFilterBranch" onchange="renderAdminStockTracker()" class="bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs font-semibold text-slate-700">
-                            <option value="">All Branches</option>
-                            <option value="BATAAN">BATAAN</option>
-                            <option value="CONCEPCION">CONCEPCION</option>
-                            <option value="CAPAS">CAPAS</option>
-                            <option value="GUIMBA">GUIMBA</option>
-                            <option value="PANIQUI">PANIQUI</option>
-                            <option value="ONE">BRANCH ONE</option>
-                            <option value="TWO">BRANCH TWO</option>
-                            <option value="THREE">BRANCH THREE</option>
-                            <option value="FOUR">BRANCH FOUR</option>
-                            <option value="FIVE">BRANCH FIVE</option>
-                        </select>
-                        <select id="stockFilterCategory" onchange="renderAdminStockTracker()" class="bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs font-semibold text-slate-700">
-                            <option value="">All Categories</option>
-                            <option value="GENERAL UNITS">GENERAL UNITS</option>
-                            <option value="CLEAR CASE">CLEAR CASE</option>
-                            <option value="SILICONE CASE">SILICONE CASE</option>
-                            <option value="TEMPERED GLASS">TEMPERED GLASS</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-xs">
-                            <thead class="bg-slate-100 text-slate-600 font-bold uppercase border-b border-slate-200">
-                                <tr>
-                                    <th class="p-3">Branch</th>
-                                    <th class="p-3">Category</th>
-                                    <th class="p-3">Product Name</th>
-                                    <th class="p-3 text-right">Current Stock</th>
-                                    <th class="p-3 text-center">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody id="adminStockTableBody" class="divide-y divide-slate-200">
-                                <!-- Dynamic rows -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ADMIN TAB 5: Sales Summary -->
-            <div id="adminTabSales" class="hidden space-y-5">
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-                        <div class="text-slate-500 text-xs font-semibold uppercase">Total Gross Sales</div>
-                        <div class="text-2xl font-extrabold text-emerald-600 mt-1" id="sumTotalSales">₱0.00</div>
-                    </div>
-                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-                        <div class="text-slate-500 text-xs font-semibold uppercase">Total Downpayments</div>
-                        <div class="text-2xl font-extrabold text-blue-600 mt-1" id="sumTotalDownpayment">₱0.00</div>
-                    </div>
-                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-                        <div class="text-slate-500 text-xs font-semibold uppercase">Total Remaining Balance</div>
-                        <div class="text-2xl font-extrabold text-amber-600 mt-1" id="sumTotalBalance">₱0.00</div>
-                    </div>
-                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-                        <div class="text-slate-500 text-xs font-semibold uppercase">Total Expenses</div>
-                        <div class="text-2xl font-extrabold text-rose-600 mt-1" id="sumTotalExpenses">₱0.00</div>
-                    </div>
-                </div>
-
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-                    <div class="p-4 border-b border-slate-200 flex justify-between items-center">
-                        <h3 class="font-bold text-slate-800 text-base">Financial Log Journal</h3>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-xs">
-                            <thead class="bg-slate-100 text-slate-600 font-bold uppercase border-b border-slate-200">
-                                <tr>
-                                    <th class="p-3">Date</th>
-                                    <th class="p-3">Branch</th>
-                                    <th class="p-3">Type</th>
-                                    <th class="p-3">Product / Description</th>
-                                    <th class="p-3 text-right">Sales Amount</th>
-                                    <th class="p-3 text-right">Downpayment</th>
-                                    <th class="p-3 text-right">Rem. Balance</th>
-                                    <th class="p-3 text-right">Expense</th>
-                                    <th class="p-3 text-center">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody id="adminSalesTableBody" class="divide-y divide-slate-200">
-                                <!-- Dynamic rows -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ADMIN TAB 6: Branch Cash Vaults -->
-            <div id="adminTabCash" class="hidden space-y-5">
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                    <div id="cashCardBataan" class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-3"></div>
-                    <div id="cashCardConcepcion" class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-3"></div>
-                    <div id="cashCardCapas" class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-3"></div>
-                    <div id="cashCardGuimba" class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-3"></div>
-                    <div id="cashCardPaniqui" class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-3"></div>
-                    <div id="cashCardOne" class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-3"></div>
-                    <div id="cashCardTwo" class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-3"></div>
-                    <div id="cashCardThree" class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-3"></div>
-                    <div id="cashCardFour" class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-3"></div>
-                    <div id="cashCardFive" class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-3"></div>
-                </div>
-            </div>
         </div>
 
         <!-- ==================== BRANCH WORKSPACE ==================== -->
         <div id="branchWorkspace" class="hidden space-y-6">
-            <div class="bg-gradient-to-r from-brand-600 via-brand-700 to-brand-800 rounded-2xl p-6 text-white shadow-lg flex flex-wrap justify-between items-center gap-4">
+            <div class="bg-gradient-to-r from-brand-600 to-brand-800 rounded-xl p-5 text-white shadow-md flex justify-between items-center">
                 <div>
-                    <span class="text-xs font-bold tracking-widest uppercase opacity-80">Branch Store Portal</span>
-                    <h2 class="text-3xl font-extrabold tracking-tight mt-1" id="branchHeaderTitle">BRANCH NAME</h2>
-                </div>
-                <div class="bg-white/10 backdrop-blur-md px-5 py-3 rounded-xl border border-white/20 text-right">
-                    <div class="text-xs opacity-80 uppercase tracking-wider font-semibold">Vault Cash On Hand</div>
-                    <div class="text-2xl font-black mt-0.5" id="branchHeaderCash">₱0.00</div>
+                    <span class="text-xs font-semibold tracking-wider uppercase opacity-80">Active Branch Location</span>
+                    <h2 class="text-2xl font-extrabold" id="branchHeaderTitle">BRANCH NAME</h2>
                 </div>
             </div>
 
-            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-1.5 flex flex-wrap gap-1 text-xs sm:text-sm font-semibold">
-                <button onclick="switchBranchTab('dashboard')" id="tab-branch-dashboard" class="px-4 py-2.5 rounded-xl transition flex items-center gap-2 bg-brand-50 text-brand-700 font-bold border border-brand-200/50 shadow-sm">
-                    <i class="fa-solid fa-gauge"></i> Dashboard
-                </button>
-                <button onclick="switchBranchTab('inventory')" id="tab-branch-inventory" class="px-4 py-2.5 rounded-xl transition flex items-center gap-2 text-slate-600 hover:bg-slate-50">
-                    <i class="fa-solid fa-boxes-stacked"></i> Store Inventory
-                </button>
-                <button onclick="switchBranchTab('movement')" id="tab-branch-movement" class="px-4 py-2.5 rounded-xl transition flex items-center gap-2 text-slate-600 hover:bg-slate-50">
-                    <i class="fa-solid fa-cart-plus"></i> Record Movement / Sale
-                </button>
-                <button onclick="switchBranchTab('swap')" id="tab-branch-swap" class="px-4 py-2.5 rounded-xl transition flex items-center gap-2 text-slate-600 hover:bg-slate-50">
-                    <i class="fa-solid fa-rotate"></i> Clear Case Swap
-                </button>
-                <button onclick="switchBranchTab('expenses')" id="tab-branch-expenses" class="px-4 py-2.5 rounded-xl transition flex items-center gap-2 text-slate-600 hover:bg-slate-50">
-                    <i class="fa-solid fa-receipt"></i> Log Expense
-                </button>
-                <button onclick="switchBranchTab('restock')" id="tab-branch-restock" class="px-4 py-2.5 rounded-xl transition flex items-center gap-2 text-slate-600 hover:bg-slate-50">
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-1 flex flex-wrap gap-2 text-sm font-medium">
+                <button onclick="switchBranchTab('restock')" id="tab-branch-restock" class="px-4 py-2.5 rounded-lg transition flex items-center gap-2 bg-brand-50 text-brand-600 font-semibold">
                     <i class="fa-solid fa-paper-plane"></i> Restock Request
                 </button>
             </div>
 
-            <!-- BRANCH TAB 1: Dashboard -->
-            <div id="branchTabDashboard" class="space-y-6">
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-                        <div class="text-slate-500 text-xs font-semibold uppercase">Branch Total Sales</div>
-                        <div class="text-2xl font-extrabold text-emerald-600 mt-1" id="bDashSales">₱0.00</div>
-                    </div>
-                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-                        <div class="text-slate-500 text-xs font-semibold uppercase">Branch Total Expenses</div>
-                        <div class="text-2xl font-extrabold text-rose-600 mt-1" id="bDashExpenses">₱0.00</div>
-                    </div>
-                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-                        <div class="text-slate-500 text-xs font-semibold uppercase">Items Sold Today</div>
-                        <div class="text-2xl font-extrabold text-brand-600 mt-1" id="bDashSoldQty">0 pcs</div>
-                    </div>
-                </div>
-
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
-                    <h3 class="font-bold text-slate-800 text-sm mb-4 flex items-center gap-2"><i class="fa-solid fa-clock-rotate-left text-brand-500"></i> Recent Activity Log</h3>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-xs">
-                            <thead class="bg-slate-100 text-slate-600 font-bold uppercase border-b border-slate-200">
-                                <tr>
-                                    <th class="p-3">Date</th>
-                                    <th class="p-3">Action</th>
-                                    <th class="p-3">Details</th>
-                                    <th class="p-3 text-right">Impact</th>
-                                </tr>
-                            </thead>
-                            <tbody id="branchDashboardActivityBody" class="divide-y divide-slate-200">
-                                <!-- Dynamic activity rows -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- BRANCH TAB 2: Store Inventory -->
-            <div id="branchTabInventory" class="hidden space-y-4">
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-wrap justify-between items-center gap-4">
-                    <div class="relative flex-grow max-w-xs">
-                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-xs"></i>
-                        <input type="text" id="branchInvSearch" oninput="renderBranchInventory()" placeholder="Search product name..." class="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-brand-500">
-                    </div>
-                    <div>
-                        <select id="branchInvCategory" onchange="renderBranchInventory()" class="bg-slate-50 border border-slate-200 rounded-xl p-2 text-xs font-semibold text-slate-700">
-                            <option value="">All Categories</option>
-                            <option value="GENERAL UNITS">GENERAL UNITS</option>
-                            <option value="CLEAR CASE">CLEAR CASE</option>
-                            <option value="SILICONE CASE">SILICONE CASE</option>
-                            <option value="TEMPERED GLASS">TEMPERED GLASS</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-xs">
-                            <thead class="bg-slate-100 text-slate-600 font-bold uppercase border-b border-slate-200">
-                                <tr>
-                                    <th class="p-3">Category</th>
-                                    <th class="p-3">Product Name</th>
-                                    <th class="p-3 text-right">Selling Price</th>
-                                    <th class="p-3 text-right">Available Stock</th>
-                                    <th class="p-3 text-center">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody id="branchInventoryTableBody" class="divide-y divide-slate-200">
-                                <!-- Dynamic rows -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- BRANCH TAB 3: Movement / Sale Form -->
-            <div id="branchTabMovement" class="hidden space-y-5">
-                <div class="max-w-xl mx-auto bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-                    <h3 class="font-bold text-slate-800 text-base border-b pb-3 flex items-center gap-2">
-                        <i class="fa-solid fa-cash-register text-brand-500"></i> Record Stock Movement / Customer Sale
-                    </h3>
-                    <form id="branchMovForm" onsubmit="handleBranchMovementSubmit(event)" class="space-y-4 text-xs">
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block font-semibold text-slate-600 mb-1">Date *</label>
-                                <input type="date" id="bMovDate" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none">
-                            </div>
-                            <div>
-                                <label class="block font-semibold text-slate-600 mb-1">Movement Type *</label>
-                                <select id="bMovType" onchange="updateBranchMovFormState()" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none font-semibold text-slate-700">
-                                    <option value="SOLD">SOLD (Customer Purchase)</option>
-                                    <option value="MANUAL_OUT">MANUAL OUT (Defect / Lost / Transfer)</option>
-                                    <option value="RESTOCK_IN">MANUAL IN (Local Stock Addition)</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div>
-                            <label class="block font-semibold text-slate-600 mb-1">Product *</label>
-                            <select id="bMovProduct" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none">
-                                <!-- Dynamic options -->
-                            </select>
-                        </div>
-
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block font-semibold text-slate-600 mb-1">Quantity *</label>
-                                <input type="number" id="bMovQty" min="1" value="1" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none">
-                            </div>
-                            <div id="containerTotalAmount">
-                                <label class="block font-semibold text-slate-600 mb-1">Total Selling Price (₱)</label>
-                                <input type="number" id="bMovAmount" step="0.01" min="0" placeholder="0.00" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none">
-                            </div>
-                        </div>
-
-                        <div id="containerPaymentDetails" class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t">
-                            <div>
-                                <label class="block font-semibold text-slate-600 mb-1">Downpayment Collected (₱)</label>
-                                <input type="number" id="bMovDownpayment" step="0.01" min="0" placeholder="0.00" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none">
-                                <span class="text-[10px] text-slate-400">Leave 0 if fully paid.</span>
-                            </div>
-                            <div>
-                                <label class="block font-semibold text-slate-600 mb-1">Payment Method</label>
-                                <select id="bMovPaymentMethod" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none">
-                                    <option value="CASH">CASH (Updates Vault)</option>
-                                    <option value="GCASH">GCASH / ONLINE</option>
-                                    <option value="BANK_TRANSFER">BANK TRANSFER</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div>
-                            <label class="block font-semibold text-slate-600 mb-1">Notes / Customer Info</label>
-                            <input type="text" id="bMovNotes" placeholder="Customer name or reference details..." class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none">
-                        </div>
-
-                        <button type="submit" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3 rounded-xl transition shadow-lg shadow-brand-500/20">
-                            Save Movement Record
-                        </button>
-                    </form>
-                </div>
-            </div>
-
-            <!-- BRANCH TAB 4: Clear Case Swap -->
-            <div id="branchTabSwap" class="hidden space-y-5">
-                <div class="max-w-lg mx-auto bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-                    <div>
+            <!-- BRANCH TAB: Restock Request -->
+            <div id="branchTabRestock" class="space-y-5">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm h-fit space-y-4">
                         <h3 class="font-bold text-slate-800 text-base flex items-center gap-2">
-                            <i class="fa-solid fa-rotate text-brand-500"></i> Clear Case Swap Process
-                        </h3>
-                        <p class="text-xs text-slate-500">Deducts the removed case and adds the newly chosen case automatically.</p>
-                    </div>
-
-                    <form id="branchSwapForm" onsubmit="handleBranchSwapSubmit(event)" class="space-y-4 text-xs">
-                        <div>
-                            <label class="block font-semibold text-slate-600 mb-1">Swap Date *</label>
-                            <input type="date" id="swapDate" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none">
-                        </div>
-
-                        <div class="bg-rose-50 p-4 rounded-xl border border-rose-200 space-y-2">
-                            <span class="font-bold text-rose-700 flex items-center gap-1.5">
-                                <i class="fa-solid fa-minus-circle"></i> Case Removed (Stock Deducted)
-                            </span>
-                            <select id="swapRemovedProduct" required class="w-full p-2.5 bg-white border border-rose-200 rounded-xl focus:ring-2 focus:ring-rose-500 outline-none">
-                                <!-- Dynamic Clear Cases -->
-                            </select>
-                        </div>
-
-                        <div class="bg-emerald-50 p-4 rounded-xl border border-emerald-200 space-y-2">
-                            <span class="font-bold text-emerald-700 flex items-center gap-1.5">
-                                <i class="fa-solid fa-plus-circle"></i> Case Added (Stock Added)
-                            </span>
-                            <select id="swapAddedProduct" required class="w-full p-2.5 bg-white border border-emerald-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none">
-                                <!-- Dynamic Clear Cases -->
-                            </select>
-                        </div>
-
-                        <div>
-                            <label class="block font-semibold text-slate-600 mb-1">Swap Quantity *</label>
-                            <input type="number" id="swapQty" min="1" value="1" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none">
-                        </div>
-
-                        <div>
-                            <label class="block font-semibold text-slate-600 mb-1">Notes / Reason for Swap</label>
-                            <input type="text" id="swapNotes" placeholder="e.g. Model exchange requested by customer" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none">
-                        </div>
-
-                        <button type="submit" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3 rounded-xl transition shadow-lg shadow-brand-500/20">
-                            Execute Case Swap
-                        </button>
-                    </form>
-                </div>
-            </div>
-
-            <!-- BRANCH TAB 5: Expenses -->
-            <div id="branchTabExpenses" class="hidden space-y-5">
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm h-fit space-y-4">
-                        <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
-                            <i class="fa-solid fa-receipt text-brand-500"></i> Log Branch Expense
-                        </h3>
-                        <form id="branchExpenseForm" onsubmit="handleBranchExpenseSubmit(event)" class="space-y-4 text-xs">
-                            <div>
-                                <label class="block font-semibold text-slate-600 mb-1">Date *</label>
-                                <input type="date" id="expDate" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none">
-                            </div>
-                            <div>
-                                <label class="block font-semibold text-slate-600 mb-1">Expense Description *</label>
-                                <input type="text" id="expDesc" required placeholder="e.g. Utility bill / Snacks / Fare" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none">
-                            </div>
-                            <div>
-                                <label class="block font-semibold text-slate-600 mb-1">Amount (₱) *</label>
-                                <input type="number" id="expAmount" min="0.01" step="0.01" required placeholder="0.00" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none">
-                            </div>
-                            <div>
-                                <label class="block font-semibold text-slate-600 mb-1">Expense Notes</label>
-                                <input type="text" id="expNotes" placeholder="Receipt no. or payee name..." class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none">
-                            </div>
-                            <button type="submit" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3 rounded-xl transition shadow-md">
-                                Save Expense (Deducts Vault Cash)
-                            </button>
-                        </form>
-                    </div>
-
-                    <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-                        <div class="p-4 border-b border-slate-200">
-                            <h3 class="font-bold text-slate-800 text-sm">Branch Expense Logs</h3>
-                        </div>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left text-xs">
-                                <thead class="bg-slate-100 text-slate-600 font-bold uppercase border-b border-slate-200">
-                                    <tr>
-                                        <th class="p-3">Date</th>
-                                        <th class="p-3">Description</th>
-                                        <th class="p-3">Notes</th>
-                                        <th class="p-3 text-right">Amount</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="branchExpensesTableBody" class="divide-y divide-slate-200">
-                                    <!-- Dynamic rows -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- BRANCH TAB 6: Restock Request -->
-            <div id="branchTabRestock" class="hidden space-y-5">
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm h-fit space-y-4">
-                        <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
-                            <i class="fa-solid fa-paper-plane text-brand-500"></i> Request Stock Replenishment
+                            <i class="fa-solid fa-paper-plane text-brand-500"></i> Request Inventory Restock
                         </h3>
                         <form id="branchRestockForm" onsubmit="handleBranchRestockSubmit(event)" class="space-y-4 text-xs">
                             <div>
                                 <label class="block font-semibold text-slate-600 mb-1">Request Date *</label>
-                                <input type="date" id="reqDate" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none">
+                                <input type="date" id="reqDate" required class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none">
                             </div>
                             <div>
                                 <label class="block font-semibold text-slate-600 mb-1">Product *</label>
-                                <select id="reqProduct" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none">
-                                    <!-- Dynamic options -->
+                                <select id="reqProduct" required class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none">
+                                    <option value="P101">iPhone 14 Pro Max Clear Case</option>
+                                    <option value="P102">iPhone 15 Pro Clear Case</option>
                                 </select>
                             </div>
                             <div>
                                 <label class="block font-semibold text-slate-600 mb-1">Quantity Needed *</label>
-                                <input type="number" id="reqQty" min="1" value="10" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none">
+                                <input type="number" id="reqQty" min="1" value="10" required class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none">
                             </div>
                             <div>
-                                <label class="block font-semibold text-slate-600 mb-1">Reason / Priority Notes</label>
-                                <input type="text" id="reqNotes" placeholder="e.g. Depleting quickly..." class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none">
+                                <label class="block font-semibold text-slate-600 mb-1">Reason / Notes</label>
+                                <input type="text" id="reqNotes" placeholder="e.g. Fast seller, almost depleted..." class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none">
                             </div>
-                            <button type="submit" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3 rounded-xl transition shadow-md">
-                                Submit Request to Admin
+                            <button type="submit" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-semibold py-2.5 rounded-lg transition shadow-sm">
+                                Submit Request to Cloud
                             </button>
                         </form>
                     </div>
 
-                    <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                         <div class="p-4 border-b border-slate-200">
-                            <h3 class="font-bold text-slate-800 text-sm">Branch Restock Request History</h3>
+                            <h3 class="font-bold text-slate-800 text-base">Branch Restock Request History</h3>
                         </div>
                         <div class="overflow-x-auto">
                             <table class="w-full text-left text-xs">
-                                <thead class="bg-slate-100 text-slate-600 font-bold uppercase border-b border-slate-200">
+                                <thead class="bg-slate-100 text-slate-600 font-semibold uppercase border-b border-slate-200">
                                     <tr>
                                         <th class="p-3">Date</th>
                                         <th class="p-3">Product Name</th>
                                         <th class="p-3 text-right">Requested Qty</th>
-                                        <th class="p-3 text-center">Status</th>
+                                        <th class="p-3">Status</th>
                                         <th class="p-3">Reason</th>
                                     </tr>
                                 </thead>
@@ -827,1071 +237,191 @@
                 </div>
             </div>
         </div>
-
     </main>
 
+    <!-- FOOTER -->
     <footer class="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-500 mt-auto">
         Multi-Branch Inventory & Sales System &copy; 2026. Real-time Supabase Cloud DB.
     </footer>
 
-    <!-- REAL-TIME SUPABASE APPLICATION LOGIC -->
+    <!-- JAVASCRIPT LOGIC -->
     <script>
         const SUPABASE_URL = "https://vxuuzinieabzekcandgv.supabase.co";
         const SUPABASE_ANON_KEY = "sb_publishable_rh6yxIhUHEkBkpyZtqz5pQ_lIHYyAX4";
-        let supabaseClient = null;
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        if (window.supabase) {
-            supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        }
+        const LOCAL_USER_BACKUP = {
+            ADMIN: "admin123",
+            BATAAN: "bataan123",
+            CONCEPCION: "concepcion123",
+            CAPAS: "capas123",
+            GUIMBA: "guimba123",
+            PANIQUI: "paniqui123",
+            ONE: "one123",
+            TWO: "two123",
+            THREE: "three123",
+            FOUR: "four123",
+            FIVE: "five123"
+        };
 
-        const BRANCHES = [
-            "BATAAN", "CONCEPCION", "CAPAS", "GUIMBA", "PANIQUI",
-            "ONE", "TWO", "THREE", "FOUR", "FIVE"
+        let currentRole = "";
+        let restockRequests = [];
+        let products = [
+            { id: "P101", name: "iPhone 14 Pro Max Clear Case", category: "CLEAR CASE", price: 350 },
+            { id: "P102", name: "iPhone 15 Pro Clear Case", category: "CLEAR CASE", price: 350 }
         ];
 
-        // Global state refreshed live from Supabase
-        let currentRole = "ADMIN";
-        let products = [];
-        let inventory = {}; // { BRANCH: { prodId: qty } }
-        let stockMovements = [];
-        let restockRequests = [];
-        let expenses = [];
-
-        window.onload = async function() {
+        window.onload = function() {
             setTodayDateInputs();
             const savedUser = localStorage.getItem("loggedUser");
-
             if (savedUser) {
-                document.getElementById("loginScreen").style.display = "none";
-                currentRole = savedUser;
-                document.getElementById("activeUserLabel").innerText = savedUser;
-                setupWorkspaceView(savedUser);
-                await fetchCloudData();
-            } else {
-                document.getElementById("loginScreen").style.display = "flex";
+                switchRole(savedUser);
             }
         };
 
+        function setTodayDateInputs() {
+            const today = new Date().toISOString().split('T')[0];
+            const el = document.getElementById('reqDate');
+            if (el) el.value = today;
+        }
+
         function togglePasswordVisibility() {
             const pwdInput = document.getElementById("loginPassword");
-            const icon = document.getElementById("pwdToggleIcon");
+            const icon = document.getElementById("pwdEyeIcon");
             if (pwdInput.type === "password") {
                 pwdInput.type = "text";
-                icon.className = "fa-solid fa-eye-slash";
+                icon.classList.replace("fa-eye", "fa-eye-slash");
             } else {
                 pwdInput.type = "password";
-                icon.className = "fa-solid fa-eye";
+                icon.classList.replace("fa-eye-slash", "fa-eye");
             }
         }
 
-        function setTodayDateInputs() {
-            const today = new Date().toISOString().split('T')[0];
-            ['bMovDate', 'swapDate', 'expDate', 'reqDate'].forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.value = today;
-            });
-        }
-
-        // --- SUPABASE CLOUD AUTHENTICATION ---
         async function loginSystem() {
             const branch = document.getElementById("loginBranch").value;
             const password = document.getElementById("loginPassword").value;
-            const errDiv = document.getElementById("loginError");
-            const btn = document.getElementById("loginBtn");
+            const errorMsg = document.getElementById("loginErrorMsg");
+            const btnSpinner = document.getElementById("btnSpinner");
+            const btnText = document.getElementById("btnText");
 
-            btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Authenticating...`;
-            errDiv.classList.add("hidden");
+            errorMsg.classList.add("hidden");
+            btnSpinner.classList.remove("hidden");
+            btnText.innerText = "Authenticating...";
 
             try {
-                const { data, error } = await supabaseClient
+                const { data, error } = await supabase
                     .from('system_users')
                     .select('*')
                     .eq('username', branch)
-                    .eq('password', password)
-                    .single();
+                    .eq('password', password);
 
-                if (error || !data) {
-                    errDiv.innerText = "Invalid branch or password.";
-                    errDiv.classList.remove("hidden");
-                } else {
+                btnSpinner.classList.add("hidden");
+                btnText.innerText = "Sign In";
+
+                if (!error && data && data.length > 0) {
                     localStorage.setItem("loggedUser", branch);
-                    document.getElementById("loginScreen").style.display = "none";
-                    document.getElementById("loginPassword").value = "";
                     switchRole(branch);
-                    showToast(`Logged in successfully as ${branch}`);
+                    return;
                 }
-            } catch (err) {
-                errDiv.innerText = "Error connecting to cloud server.";
-                errDiv.classList.remove("hidden");
-            } finally {
-                btn.innerHTML = `<span>Sign In</span>`;
-            }
-        }
 
-        function logoutSystem() {
-            localStorage.removeItem("loggedUser");
-            document.getElementById("loginScreen").style.display = "flex";
-            showToast("Logged out.", "info");
+                if (LOCAL_USER_BACKUP[branch] === password) {
+                    localStorage.setItem("loggedUser", branch);
+                    switchRole(branch);
+                    return;
+                }
+
+                errorMsg.innerText = "Invalid branch or password.";
+                errorMsg.classList.remove("hidden");
+
+            } catch (err) {
+                btnSpinner.classList.add("hidden");
+                btnText.innerText = "Sign In";
+
+                if (LOCAL_USER_BACKUP[branch] === password) {
+                    localStorage.setItem("loggedUser", branch);
+                    switchRole(branch);
+                } else {
+                    errorMsg.innerText = "Connection error. Please try again.";
+                    errorMsg.classList.remove("hidden");
+                }
+            }
         }
 
         function switchRole(role) {
             currentRole = role;
-            document.getElementById("activeUserLabel").innerText = role;
-            setupWorkspaceView(role);
-            fetchCloudData();
-        }
+            document.getElementById('loginScreen').classList.add('hidden');
 
-        function setupWorkspaceView(role) {
             if (role === 'ADMIN') {
                 document.getElementById('adminWorkspace').classList.remove('hidden');
                 document.getElementById('branchWorkspace').classList.add('hidden');
-                document.getElementById('headerRoleBadge').innerHTML = `
-                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                    <span>Administrator Workspace</span>
-                `;
-                switchAdminTab('movement');
+                document.getElementById('headerRoleBadge').innerText = "Administrator Workspace";
+                renderAdminRestockRequests();
             } else {
                 document.getElementById('adminWorkspace').classList.add('hidden');
                 document.getElementById('branchWorkspace').classList.remove('hidden');
-                document.getElementById('headerRoleBadge').innerHTML = `
-                    <span class="w-2 h-2 rounded-full bg-brand-500"></span>
-                    <span>Branch Portal (${role})</span>
-                `;
+                document.getElementById('headerRoleBadge').innerText = `Branch Portal (${role})`;
                 document.getElementById('branchHeaderTitle').innerText = `${role} BRANCH`;
-                switchBranchTab('dashboard');
-            }
-        }
-
-        // --- FETCH EVERYTHING LIVE FROM SUPABASE ---
-        async function fetchCloudData() {
-            const icon = document.getElementById("refreshIcon");
-            if (icon) icon.classList.add("fa-spin");
-
-            try {
-                // 1. Fetch Products
-                const { data: prodData } = await supabaseClient.from('products').select('*');
-                products = (prodData || []).map(p => ({
-                    id: p.id,
-                    name: p.name,
-                    category: p.category,
-                    price: parseFloat(p.price) || 0
-                }));
-
-                // 2. Fetch Inventory
-                const { data: invData } = await supabaseClient.from('branch_inventory').select('*');
-                inventory = {};
-                BRANCHES.forEach(b => inventory[b] = {});
-                (invData || []).forEach(row => {
-                    if (!inventory[row.branch]) inventory[row.branch] = {};
-                    inventory[row.branch][row.product_id] = row.quantity;
-                });
-
-                // 3. Fetch Stock Movements
-                const { data: movData } = await supabaseClient
-                    .from('stock_movements')
-                    .select('*')
-                    .order('date', { ascending: false });
-                stockMovements = (movData || []).map(m => ({
-                    id: m.id,
-                    date: m.date,
-                    branch: m.branch,
-                    productId: m.product_id,
-                    category: m.category,
-                    type: m.type,
-                    direction: m.direction,
-                    qty: m.qty,
-                    amount: parseFloat(m.amount) || 0,
-                    downpayment: parseFloat(m.downpayment) || 0,
-                    paymentMethod: m.payment_method,
-                    notes: m.notes
-                }));
-
-                // 4. Fetch Restock Requests
-                const { data: reqData } = await supabaseClient
-                    .from('restock_requests')
-                    .select('*')
-                    .order('date', { ascending: false });
-                restockRequests = (reqData || []).map(r => ({
-                    id: r.id,
-                    date: r.date,
-                    branch: r.branch,
-                    productId: r.product_id,
-                    qty: r.qty,
-                    notes: r.notes,
-                    status: r.status
-                }));
-
-                // 5. Fetch Expenses
-                const { data: expData } = await supabaseClient
-                    .from('branch_expenses')
-                    .select('*')
-                    .order('date', { ascending: false });
-                expenses = (expData || []).map(e => ({
-                    id: e.id,
-                    date: e.date,
-                    branch: e.branch,
-                    description: e.description,
-                    amount: parseFloat(e.amount) || 0,
-                    notes: e.notes
-                }));
-
-                refreshUI();
-            } catch (err) {
-                showToast("Failed to sync cloud data.", "error");
-            } finally {
-                if (icon) icon.classList.remove("fa-spin");
-            }
-        }
-
-        function refreshUI() {
-            updatePendingRestockBadge();
-            if (currentRole === 'ADMIN') {
-                renderAdminMovements();
-                renderAdminRestockRequests();
-                renderAdminProducts();
-                renderAdminStockTracker();
-                renderAdminSalesSummary();
-                renderAdminCashOnHand();
-            } else {
-                renderBranchHeaderCash();
-                renderBranchDashboard();
-                renderBranchInventory();
-                populateBranchProductSelects();
-                renderBranchExpenses();
                 renderBranchRestockLog();
             }
+            loadDataFromCloud();
+        }
+
+        async function loadDataFromCloud() {
+            const { data, error } = await supabase.from('restock_requests').select('*').order('date', { ascending: false });
+            if (!error && data) {
+                restockRequests = data;
+            }
+            if (currentRole === 'ADMIN') {
+                renderAdminRestockRequests();
+            } else {
+                renderBranchRestockLog();
+            }
+            showToast("Synced with Cloud DB.");
+        }
+
+        function logoutSystem() {
+            localStorage.removeItem("loggedUser");
+            location.reload();
         }
 
         function showToast(message, type = "success") {
             const container = document.getElementById('toastContainer');
             const toast = document.createElement('div');
-            const bg = type === 'success' ? 'bg-emerald-600' : type === 'error' ? 'bg-rose-600' : 'bg-slate-800';
-            toast.className = `${bg} text-white px-4 py-3 rounded-xl shadow-xl text-xs font-semibold flex items-center gap-2 transition duration-300 transform translate-y-2 opacity-0`;
+            const bg = type === 'success' ? 'bg-emerald-600' : 'bg-rose-600';
+            toast.className = `${bg} text-white px-4 py-3 rounded-lg shadow-lg text-xs font-semibold flex items-center gap-2 transition duration-300`;
             toast.innerHTML = `<i class="fa-solid fa-circle-info"></i> <span>${message}</span>`;
-            
             container.appendChild(toast);
-            setTimeout(() => toast.classList.remove('translate-y-2', 'opacity-0'), 10);
-            setTimeout(() => {
-                toast.classList.add('opacity-0');
-                setTimeout(() => toast.remove(), 300);
-            }, 3000);
-        }
-
-        // =========================================================================
-        // ADMIN TAB ACTIONS (SUPABASE SYNCED)
-        // =========================================================================
-        function switchAdminTab(tab) {
-            ['movement', 'restock', 'products', 'stock', 'sales', 'cash'].forEach(t => {
-                const navBtn = document.getElementById(`tab-admin-${t}`);
-                const content = document.getElementById(`adminTab${capitalize(t)}`);
-                if (t === tab) {
-                    navBtn.className = "px-4 py-2.5 rounded-xl transition flex items-center gap-2 bg-brand-50 text-brand-700 font-bold border border-brand-200/50 shadow-sm";
-                    content.classList.remove('hidden');
-                } else {
-                    navBtn.className = "px-4 py-2.5 rounded-xl transition flex items-center gap-2 text-slate-600 hover:bg-slate-50";
-                    content.classList.add('hidden');
-                }
-            });
-            refreshUI();
-        }
-
-        function updatePendingRestockBadge() {
-            const pending = restockRequests.filter(r => r.status === 'PENDING').length;
-            const badge = document.getElementById('pendingRestockBadge');
-            if (pending > 0) {
-                badge.innerText = pending;
-                badge.classList.remove('hidden');
-            } else {
-                badge.classList.add('hidden');
-            }
-        }
-
-        function renderAdminMovements() {
-            const branchFilter = document.getElementById('filterMovBranch').value;
-            const catFilter = document.getElementById('filterMovCategory').value;
-            const typeFilter = document.getElementById('filterMovType').value;
-            const dirFilter = document.getElementById('filterMovDirection').value;
-            const startFilter = document.getElementById('filterMovStartDate').value;
-            const endFilter = document.getElementById('filterMovEndDate').value;
-
-            let filtered = stockMovements.filter(m => {
-                if (branchFilter && m.branch !== branchFilter) return false;
-                if (catFilter && m.category !== catFilter) return false;
-                if (typeFilter && m.type !== typeFilter) return false;
-                if (dirFilter && m.direction !== dirFilter) return false;
-                if (startFilter && m.date < startFilter) return false;
-                if (endFilter && m.date > endFilter) return false;
-                return true;
-            });
-
-            let totalIn = 0, totalOut = 0;
-            filtered.forEach(m => {
-                if (m.direction === 'IN') totalIn += m.qty;
-                else if (m.direction === 'OUT') totalOut += m.qty;
-            });
-
-            document.getElementById('metricTotalMovements').innerText = filtered.length;
-            document.getElementById('metricTotalIn').innerText = `+${totalIn}`;
-            document.getElementById('metricTotalOut').innerText = `-${totalOut}`;
-            document.getElementById('metricNetMovement').innerText = (totalIn - totalOut);
-
-            const tbody = document.getElementById('adminMovementTableBody');
-            if (filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="11" class="text-center py-6 text-slate-400">No stock movements found.</td></tr>`;
-                return;
-            }
-
-            tbody.innerHTML = filtered.map(m => {
-                const prod = products.find(p => p.id === m.productId) || { name: 'Unknown' };
-                const isIn = m.direction === 'IN';
-                return `
-                    <tr class="hover:bg-slate-50 transition">
-                        <td class="p-3 text-center">
-                            <input type="checkbox" value="${m.id}" class="movCheckbox rounded border-slate-300">
-                        </td>
-                        <td class="p-3 font-medium text-slate-700">${m.date}</td>
-                        <td class="p-3 font-bold text-slate-900">${m.branch}</td>
-                        <td class="p-3"><span class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-[10px] font-semibold">${m.category}</span></td>
-                        <td class="p-3 font-medium text-slate-800">${prod.name}</td>
-                        <td class="p-3"><span class="bg-brand-50 text-brand-700 px-2 py-0.5 rounded text-[10px] font-bold">${m.type}</span></td>
-                        <td class="p-3">
-                            <span class="${isIn ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'} px-2 py-0.5 rounded font-bold text-[10px]">
-                                ${m.direction}
-                            </span>
-                        </td>
-                        <td class="p-3 text-right font-bold ${isIn ? 'text-emerald-600' : 'text-rose-600'}">${isIn ? '+' : '-'}${m.qty}</td>
-                        <td class="p-3 text-right font-semibold">₱${(m.amount || 0).toLocaleString('en-US', {minimumFractionDigits:2})}</td>
-                        <td class="p-3 text-slate-500 max-w-xs truncate">${m.notes || '-'}</td>
-                        <td class="p-3 text-center">
-                            <button onclick="deleteMovement('${m.id}')" class="text-rose-500 hover:text-rose-700 font-semibold p-1" title="Delete record">
-                                <i class="fa-solid fa-trash-can"></i>
-                            </button>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
-        }
-
-        function toggleSelectAllMovements(source) {
-            document.querySelectorAll('.movCheckbox').forEach(cb => cb.checked = source.checked);
-        }
-
-        async function deleteMovement(id) {
-            if (confirm("Delete movement log permanently?")) {
-                await supabaseClient.from('stock_movements').delete().eq('id', id);
-                showToast("Movement deleted.", "info");
-                fetchCloudData();
-            }
-        }
-
-        async function deleteSelectedMovements() {
-            const checked = Array.from(document.querySelectorAll('.movCheckbox:checked')).map(cb => cb.value);
-            if (checked.length === 0) return showToast("No rows selected.", "error");
-            if (confirm(`Delete ${checked.length} selected movements?`)) {
-                await supabaseClient.from('stock_movements').delete().in('id', checked);
-                showToast(`Deleted ${checked.length} movement logs.`, "info");
-                fetchCloudData();
-            }
-        }
-
-        function exportStockMovementsCSV() {
-            if (stockMovements.length === 0) return showToast("No data to export.", "error");
-            let csv = "ID,Date,Branch,Category,Product,Type,Direction,Qty,Amount,Notes\n";
-            stockMovements.forEach(m => {
-                const prod = products.find(p => p.id === m.productId) || { name: 'Unknown' };
-                csv += `"${m.id}","${m.date}","${m.branch}","${m.category}","${prod.name.replace(/"/g, '""')}","${m.type}","${m.direction}",${m.qty},${m.amount || 0},"${(m.notes || '').replace(/"/g, '""')}"\n`;
-            });
-
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.setAttribute('href', url);
-            a.setAttribute('download', `Stock_Movements_${new Date().toISOString().split('T')[0]}.csv`);
-            a.click();
-            showToast("Exported CSV successfully.");
-        }
-
-        async function renderAdminRestockRequests() {
-    const tbody = document.getElementById('adminRestockTableBody');
-    
-    // Fetch latest restock requests directly from Supabase cloud
-    const { data: cloudRestocks, error } = await supabase
-        .from('restock_requests')
-        .select('*')
-        .order('date', { ascending: false });
-
-    if (!error && cloudRestocks) {
-        restockRequests = cloudRestocks; // Update global array with live cloud data
-    }
-
-    updatePendingRestockBadge();
-
-    const pending = restockRequests.filter(r => r.status === 'PENDING');
-
-    if (pending.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" class="text-center py-6 text-slate-400">No pending restock requests.</td></tr>`;
-        return;
-    }
-
-    tbody.innerHTML = pending.map(r => {
-        const prod = products.find(p => p.id === r.product_id || p.id === r.productId) || { name: 'Unknown', category: 'GENERAL' };
-        return `
-            <tr class="hover:bg-slate-50">
-                <td class="p-3 text-slate-700">${r.date}</td>
-                <td class="p-3 font-bold text-slate-900">${r.branch}</td>
-                <td class="p-3"><span class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-[10px] font-semibold">${prod.category}</span></td>
-                <td class="p-3 font-semibold text-slate-800">${prod.name}</td>
-                <td class="p-3 text-right font-bold text-brand-600 text-sm">${r.qty} pcs</td>
-                <td class="p-3 text-slate-500">${r.notes || '-'}</td>
-                <td class="p-3 text-center space-x-1">
-                    <button onclick="approveRestockRequest('${r.id}')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-semibold px-3 py-1.5 rounded transition shadow-sm">
-                        Approve & Add Stock
-                    </button>
-                    <button onclick="rejectRestockRequest('${r.id}')" class="bg-rose-50 hover:bg-rose-100 text-rose-600 font-semibold px-3 py-1.5 rounded text-[11px] border border-rose-200 transition">
-                        Reject
-                    </button>
-                </td>
-            </tr>
-        `;
-    }).join('');
-}
-
-        async function approveRestockRequest(id) {
-            const req = restockRequests.find(r => r.id === id);
-            if (!req) return;
-
-            // Update Restock Status
-            await supabaseClient.from('restock_requests').update({ status: 'APPROVED' }).eq('id', id);
-
-            // Increment Branch Inventory
-            const currentStock = (inventory[req.branch] && inventory[req.branch][req.productId]) || 0;
-            await supabaseClient.from('branch_inventory').upsert({
-                branch: req.branch,
-                product_id: req.productId,
-                quantity: currentStock + req.qty
-            });
-
-            // Add Stock Movement Log
-            const prod = products.find(p => p.id === req.productId);
-            await supabaseClient.from('stock_movements').insert([{
-                id: 'MOV-' + Date.now(),
-                date: new Date().toISOString().split('T')[0],
-                branch: req.branch,
-                product_id: req.productId,
-                category: prod ? prod.category : 'GENERAL UNITS',
-                type: 'RESTOCK_IN',
-                direction: 'IN',
-                qty: req.qty,
-                amount: 0,
-                downpayment: 0,
-                payment_method: 'CASH',
-                notes: `Approved Restock Request (${req.id})`
-            }]);
-
-            showToast(`Approved ${req.qty} pcs for ${req.branch}!`);
-            fetchCloudData();
-        }
-
-        async function rejectRestockRequest(id) {
-            await supabaseClient.from('restock_requests').update({ status: 'REJECTED' }).eq('id', id);
-            showToast(`Restock request rejected.`, "info");
-            fetchCloudData();
-        }
-
-        function approveAllRestockRequests() {
-            const pending = restockRequests.filter(r => r.status === 'PENDING');
-            if (pending.length === 0) return showToast("No pending requests.", "info");
-            pending.forEach(r => approveRestockRequest(r.id));
-        }
-
-        function renderAdminProducts() {
-            document.getElementById('productCountBadge').innerText = `${products.length} Products`;
-            const tbody = document.getElementById('adminProductsTableBody');
-
-            tbody.innerHTML = products.map(p => `
-                <tr class="hover:bg-slate-50 transition">
-                    <td class="p-3"><span class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded text-[10px] font-semibold">${p.category}</span></td>
-                    <td class="p-3 font-semibold text-slate-800">${p.name}</td>
-                    <td class="p-3 text-right font-bold text-slate-900">₱${(p.price || 0).toLocaleString('en-US', {minimumFractionDigits:2})}</td>
-                    <td class="p-3 text-center space-x-2">
-                        <button onclick="editProduct('${p.id}')" class="text-brand-600 hover:text-brand-800 font-semibold p-1" title="Edit">
-                            <i class="fa-solid fa-pen-to-square"></i>
-                        </button>
-                        <button onclick="deleteProduct('${p.id}')" class="text-rose-500 hover:text-rose-700 font-semibold p-1" title="Delete">
-                            <i class="fa-solid fa-trash-can"></i>
-                        </button>
-                    </td>
-                </tr>
-            `).join('');
-        }
-
-        async function handleProductSubmit(e) {
-            e.preventDefault();
-            const id = document.getElementById('prodId').value;
-            const name = document.getElementById('prodName').value.trim();
-            const category = document.getElementById('prodCategory').value;
-            const price = parseFloat(document.getElementById('prodPrice').value) || 0;
-            const initStock = parseInt(document.getElementById('prodInitialStock').value) || 0;
-
-            if (id) {
-                await supabaseClient.from('products').update({ name, category, price }).eq('id', id);
-                showToast("Product updated.");
-            } else {
-                const newId = 'P' + (Date.now() % 10000);
-                await supabaseClient.from('products').insert([{ id: newId, name, category, price }]);
-
-                // Initialize branch stock in cloud DB
-                for (const b of BRANCHES) {
-                    await supabaseClient.from('branch_inventory').upsert({
-                        branch: b,
-                        product_id: newId,
-                        quantity: initStock
-                    });
-                }
-                showToast("New product created.");
-            }
-
-            resetProductForm();
-            fetchCloudData();
-        }
-
-        function editProduct(id) {
-            const prod = products.find(p => p.id === id);
-            if (!prod) return;
-            document.getElementById('prodFormTitle').innerHTML = `<i class="fa-solid fa-pen-to-square text-brand-500"></i> Edit Product`;
-            document.getElementById('prodId').value = prod.id;
-            document.getElementById('prodName').value = prod.name;
-            document.getElementById('prodCategory').value = prod.category;
-            document.getElementById('prodPrice').value = prod.price;
-            document.getElementById('prodInitialStock').parentElement.classList.add('hidden');
-        }
-
-        function resetProductForm() {
-            document.getElementById('prodFormTitle').innerHTML = `<i class="fa-solid fa-plus-circle text-brand-500"></i> Add New Product`;
-            document.getElementById('productForm').reset();
-            document.getElementById('prodId').value = "";
-            document.getElementById('prodInitialStock').parentElement.classList.remove('hidden');
-        }
-
-        async function deleteProduct(id) {
-            if (confirm("Delete this product from cloud database?")) {
-                await supabaseClient.from('products').delete().eq('id', id);
-                await supabaseClient.from('branch_inventory').delete().eq('product_id', id);
-                showToast("Product deleted.", "info");
-                fetchCloudData();
-            }
-        }
-
-        function renderAdminStockTracker() {
-            const branchFilter = document.getElementById('stockFilterBranch').value;
-            const catFilter = document.getElementById('stockFilterCategory').value;
-            const tbody = document.getElementById('adminStockTableBody');
-            let rowsHtml = '';
-
-            BRANCHES.forEach(b => {
-                if (branchFilter && b !== branchFilter) return;
-                products.forEach(p => {
-                    if (catFilter && p.category !== catFilter) return;
-
-                    const stock = (inventory[b] && inventory[b][p.id] !== undefined) ? inventory[b][p.id] : 0;
-                    let statusBadge = '<span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-bold text-[10px]">IN STOCK</span>';
-                    if (stock === 0) {
-                        statusBadge = '<span class="bg-rose-100 text-rose-800 px-2 py-0.5 rounded font-bold text-[10px]">OUT OF STOCK</span>';
-                    } else if (stock <= 5) {
-                        statusBadge = '<span class="bg-amber-100 text-amber-800 px-2 py-0.5 rounded font-bold text-[10px]">LOW STOCK</span>';
-                    }
-
-                    rowsHtml += `
-                        <tr class="hover:bg-slate-50 transition">
-                            <td class="p-3 font-bold text-slate-900">${b}</td>
-                            <td class="p-3"><span class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-[10px] font-semibold">${p.category}</span></td>
-                            <td class="p-3 font-medium text-slate-800">${p.name}</td>
-                            <td class="p-3 text-right font-bold text-slate-900 text-sm">${stock} pcs</td>
-                            <td class="p-3 text-center">${statusBadge}</td>
-                        </tr>
-                    `;
-                });
-            });
-
-            tbody.innerHTML = rowsHtml || `<tr><td colspan="5" class="text-center py-6 text-slate-400">No matching stock items found.</td></tr>`;
-        }
-
-        function renderAdminSalesSummary() {
-            let totalSales = 0, totalDownpayment = 0, totalBalance = 0, totalExp = 0;
-
-            stockMovements.forEach(m => {
-                if (m.type === 'SOLD') {
-                    const salesVal = m.amount || 0;
-                    const dpVal = m.downpayment !== undefined ? m.downpayment : salesVal;
-                    const bal = salesVal - dpVal;
-
-                    totalSales += salesVal;
-                    totalDownpayment += dpVal;
-                    totalBalance += (bal > 0 ? bal : 0);
-                }
-            });
-
-            expenses.forEach(e => totalExp += (e.amount || 0));
-
-            document.getElementById('sumTotalSales').innerText = `₱${totalSales.toLocaleString('en-US', {minimumFractionDigits:2})}`;
-            document.getElementById('sumTotalDownpayment').innerText = `₱${totalDownpayment.toLocaleString('en-US', {minimumFractionDigits:2})}`;
-            document.getElementById('sumTotalBalance').innerText = `₱${totalBalance.toLocaleString('en-US', {minimumFractionDigits:2})}`;
-            document.getElementById('sumTotalExpenses').innerText = `₱${totalExp.toLocaleString('en-US', {minimumFractionDigits:2})}`;
-
-            const journal = [];
-            stockMovements.forEach(m => {
-                if (m.type === 'SOLD') {
-                    const prod = products.find(p => p.id === m.productId) || { name: 'Unknown' };
-                    const salesVal = m.amount || 0;
-                    const dpVal = m.downpayment !== undefined ? m.downpayment : salesVal;
-                    const bal = salesVal - dpVal;
-                    journal.push({
-                        id: m.id,
-                        date: m.date,
-                        branch: m.branch,
-                        type: 'SALE',
-                        description: `${prod.name} (${m.qty} pcs)`,
-                        sales: salesVal,
-                        downpayment: dpVal,
-                        balance: bal > 0 ? bal : 0,
-                        expense: 0,
-                        rawType: 'MOV'
-                    });
-                }
-            });
-
-            expenses.forEach(e => {
-                journal.push({
-                    id: e.id,
-                    date: e.date,
-                    branch: e.branch,
-                    type: 'EXPENSE',
-                    description: `${e.description} (${e.notes || 'No details'})`,
-                    sales: 0,
-                    downpayment: 0,
-                    balance: 0,
-                    expense: e.amount || 0,
-                    rawType: 'EXP'
-                });
-            });
-
-            journal.sort((a, b) => (b.date > a.date ? 1 : -1));
-
-            const tbody = document.getElementById('adminSalesTableBody');
-            if (journal.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="9" class="text-center py-6 text-slate-400">No financial records found.</td></tr>`;
-                return;
-            }
-
-            tbody.innerHTML = journal.map(item => `
-                <tr class="hover:bg-slate-50 transition">
-                    <td class="p-3 text-slate-700 font-medium">${item.date}</td>
-                    <td class="p-3 font-bold text-slate-900">${item.branch}</td>
-                    <td class="p-3">
-                        <span class="${item.type === 'SALE' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'} px-2 py-0.5 rounded text-[10px] font-bold">
-                            ${item.type}
-                        </span>
-                    </td>
-                    <td class="p-3 font-medium text-slate-800">${item.description}</td>
-                    <td class="p-3 text-right font-semibold text-emerald-600">${item.sales > 0 ? '₱' + item.sales.toLocaleString('en-US', {minimumFractionDigits:2}) : '-'}</td>
-                    <td class="p-3 text-right font-medium text-slate-700">${item.downpayment > 0 ? '₱' + item.downpayment.toLocaleString('en-US', {minimumFractionDigits:2}) : '-'}</td>
-                    <td class="p-3 text-right font-medium text-amber-600">${item.balance > 0 ? '₱' + item.balance.toLocaleString('en-US', {minimumFractionDigits:2}) : '-'}</td>
-                    <td class="p-3 text-right font-semibold text-rose-600">${item.expense > 0 ? '₱' + item.expense.toLocaleString('en-US', {minimumFractionDigits:2}) : '-'}</td>
-                    <td class="p-3 text-center">
-                        <button onclick="deleteJournalItem('${item.id}', '${item.rawType}')" class="text-rose-500 hover:text-rose-700 font-semibold p-1" title="Delete">
-                            <i class="fa-solid fa-trash-can"></i>
-                        </button>
-                    </td>
-                </tr>
-            `).join('');
-        }
-
-        async function deleteJournalItem(id, rawType) {
-            if (confirm("Delete entry from cloud database?")) {
-                if (rawType === 'MOV') await supabaseClient.from('stock_movements').delete().eq('id', id);
-                else if (rawType === 'EXP') await supabaseClient.from('branch_expenses').delete().eq('id', id);
-                showToast("Journal entry removed.", "info");
-                fetchCloudData();
-            }
-        }
-
-        function renderAdminCashOnHand() {
-            const cashCardIds = {
-                BATAAN: "cashCardBataan", CONCEPCION: "cashCardConcepcion", CAPAS: "cashCardCapas",
-                GUIMBA: "cashCardGuimba", PANIQUI: "cashCardPaniqui", ONE: "cashCardOne",
-                TWO: "cashCardTwo", THREE: "cashCardThree", FOUR: "cashCardFour", FIVE: "cashCardFive"
-            };
-
-            BRANCHES.forEach(b => {
-                const cashData = calculateBranchCash(b);
-                const card = document.getElementById(cashCardIds[b]);
-                if (!card) return;
-
-                card.innerHTML = `
-                    <div class="flex justify-between items-center border-b pb-3">
-                        <h4 class="font-black text-slate-900 text-base">${b} BRANCH</h4>
-                        <span class="bg-brand-50 text-brand-700 px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase">Vault Status</span>
-                    </div>
-                    <div class="space-y-2 text-xs text-slate-600 pt-1">
-                        <div class="flex justify-between">
-                            <span>Cash Collected:</span>
-                            <span class="font-bold text-emerald-600">+₱${cashData.cashIn.toLocaleString('en-US', {minimumFractionDigits:2})}</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span>Branch Expenses:</span>
-                            <span class="font-bold text-rose-600">-₱${cashData.cashOut.toLocaleString('en-US', {minimumFractionDigits:2})}</span>
-                        </div>
-                        <div class="border-t pt-2.5 flex justify-between items-center text-xs font-bold text-slate-900">
-                            <span>Net Cash On Hand:</span>
-                            <span class="text-lg text-brand-600 font-extrabold">₱${cashData.netCash.toLocaleString('en-US', {minimumFractionDigits:2})}</span>
-                        </div>
-                    </div>
-                `;
-            });
-        }
-
-        function calculateBranchCash(branch) {
-            let cashIn = 0;
-            stockMovements.forEach(m => {
-                if (m.branch === branch && m.type === 'SOLD' && (m.paymentMethod === 'CASH' || !m.paymentMethod)) {
-                    let collected = (m.downpayment || 0) > 0 ? m.downpayment : (m.amount || 0);
-                    cashIn += collected;
-                }
-            });
-
-            let cashOut = 0;
-            expenses.forEach(e => {
-                if (e.branch === branch) cashOut += (e.amount || 0);
-            });
-
-            return { cashIn, cashOut, netCash: cashIn - cashOut };
-        }
-
-        // =========================================================================
-        // BRANCH TAB ACTIONS (SUPABASE SYNCED)
-        // =========================================================================
-        function switchBranchTab(tab) {
-            ['dashboard', 'inventory', 'movement', 'swap', 'expenses', 'restock'].forEach(t => {
-                const navBtn = document.getElementById(`tab-branch-${t}`);
-                const content = document.getElementById(`branchTab${capitalize(t)}`);
-                if (t === tab) {
-                    navBtn.className = "px-4 py-2.5 rounded-xl transition flex items-center gap-2 bg-brand-50 text-brand-700 font-bold border border-brand-200/50 shadow-sm";
-                    content.classList.remove('hidden');
-                } else {
-                    navBtn.className = "px-4 py-2.5 rounded-xl transition flex items-center gap-2 text-slate-600 hover:bg-slate-50";
-                    content.classList.add('hidden');
-                }
-            });
-            refreshUI();
-        }
-
-        function renderBranchHeaderCash() {
-            const cashData = calculateBranchCash(currentRole);
-            document.getElementById('branchHeaderCash').innerText = `₱${cashData.netCash.toLocaleString('en-US', {minimumFractionDigits:2})}`;
-        }
-
-        function renderBranchDashboard() {
-            let totalSales = 0, totalExp = 0, totalSoldQty = 0;
-            const today = new Date().toISOString().split('T')[0];
-
-            stockMovements.forEach(m => {
-                if (m.branch === currentRole && m.type === 'SOLD') {
-                    totalSales += (m.amount || 0);
-                    if (m.date === today) totalSoldQty += (m.qty || 0);
-                }
-            });
-
-            expenses.forEach(e => {
-                if (e.branch === currentRole) totalExp += (e.amount || 0);
-            });
-
-            document.getElementById('bDashSales').innerText = `₱${totalSales.toLocaleString('en-US', {minimumFractionDigits:2})}`;
-            document.getElementById('bDashExpenses').innerText = `₱${totalExp.toLocaleString('en-US', {minimumFractionDigits:2})}`;
-            document.getElementById('bDashSoldQty').innerText = `${totalSoldQty} pcs`;
-
-            const activities = [];
-            stockMovements.filter(m => m.branch === currentRole).forEach(m => {
-                const prod = products.find(p => p.id === m.productId) || { name: 'Unknown' };
-                activities.push({
-                    date: m.date,
-                    action: m.type,
-                    details: `${prod.name} (${m.qty} pcs)`,
-                    impact: m.direction === 'IN' ? `+${m.qty} pcs` : `-${m.qty} pcs`,
-                    isPositive: m.direction === 'IN'
-                });
-            });
-
-            expenses.filter(e => e.branch === currentRole).forEach(e => {
-                activities.push({
-                    date: e.date,
-                    action: 'EXPENSE',
-                    details: e.description,
-                    impact: `-₱${(e.amount || 0).toFixed(2)}`,
-                    isPositive: false
-                });
-            });
-
-            activities.sort((a, b) => (b.date > a.date ? 1 : -1));
-
-            const tbody = document.getElementById('branchDashboardActivityBody');
-            if (activities.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" class="text-center py-6 text-slate-400">No activity logged for this branch.</td></tr>`;
-                return;
-            }
-
-            tbody.innerHTML = activities.slice(0, 10).map(a => `
-                <tr class="hover:bg-slate-50 transition">
-                    <td class="p-3 text-slate-700 font-medium">${a.date}</td>
-                    <td class="p-3"><span class="bg-brand-50 text-brand-700 px-2 py-0.5 rounded text-[10px] font-bold">${a.action}</span></td>
-                    <td class="p-3 font-medium text-slate-800">${a.details}</td>
-                    <td class="p-3 text-right font-bold ${a.isPositive ? 'text-emerald-600' : 'text-rose-600'}">${a.impact}</td>
-                </tr>
-            `).join('');
-        }
-
-        function renderBranchInventory() {
-            const search = (document.getElementById('branchInvSearch').value || '').toLowerCase();
-            const catFilter = document.getElementById('branchInvCategory').value;
-            const tbody = document.getElementById('branchInventoryTableBody');
-
-            const filteredProds = products.filter(p => {
-                if (search && !p.name.toLowerCase().includes(search)) return false;
-                if (catFilter && p.category !== catFilter) return false;
-                return true;
-            });
-
-            if (filteredProds.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-6 text-slate-400">No inventory items match search.</td></tr>`;
-                return;
-            }
-
-            tbody.innerHTML = filteredProds.map(p => {
-                const stock = (inventory[currentRole] && inventory[currentRole][p.id] !== undefined) ? inventory[currentRole][p.id] : 0;
-                let badge = '<span class="bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded font-bold text-[10px]">IN STOCK</span>';
-                if (stock === 0) badge = '<span class="bg-rose-100 text-rose-800 px-2.5 py-0.5 rounded font-bold text-[10px]">OUT OF STOCK</span>';
-                else if (stock <= 5) badge = '<span class="bg-amber-100 text-amber-800 px-2.5 py-0.5 rounded font-bold text-[10px]">LOW STOCK</span>';
-
-                return `
-                    <tr class="hover:bg-slate-50 transition">
-                        <td class="p-3"><span class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-[10px] font-semibold">${p.category}</span></td>
-                        <td class="p-3 font-semibold text-slate-800">${p.name}</td>
-                        <td class="p-3 text-right font-semibold text-slate-700">₱${(p.price || 0).toLocaleString('en-US', {minimumFractionDigits:2})}</td>
-                        <td class="p-3 text-right font-bold text-slate-900 text-sm">${stock} pcs</td>
-                        <td class="p-3 text-center">${badge}</td>
-                    </tr>
-                `;
-            }).join('');
-        }
-
-        function populateBranchProductSelects() {
-            const movSelect = document.getElementById('bMovProduct');
-            const swapRemSelect = document.getElementById('swapRemovedProduct');
-            const swapAddSelect = document.getElementById('swapAddedProduct');
-            const reqSelect = document.getElementById('reqProduct');
-
-            if (!movSelect) return;
-
-            const allOpts = products.map(p => `<option value="${p.id}">${p.name} (${p.category})</option>`).join('');
-            movSelect.innerHTML = allOpts;
-            reqSelect.innerHTML = allOpts;
-
-            const clearCases = products.filter(p => p.category === 'CLEAR CASE');
-            const swapOpts = clearCases.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
-
-            if (clearCases.length > 0) {
-                swapRemSelect.innerHTML = swapOpts;
-                swapAddSelect.innerHTML = swapOpts;
-            } else {
-                swapRemSelect.innerHTML = `<option value="">No Clear Cases</option>`;
-                swapAddSelect.innerHTML = `<option value="">No Clear Cases</option>`;
-            }
-        }
-
-        function updateBranchMovFormState() {
-            const type = document.getElementById('bMovType').value;
-            const containerAmt = document.getElementById('containerTotalAmount');
-            const containerPay = document.getElementById('containerPaymentDetails');
-
-            if (type === 'SOLD') {
-                containerAmt.classList.remove('hidden');
-                containerPay.classList.remove('hidden');
-            } else {
-                containerAmt.classList.add('hidden');
-                containerPay.classList.add('hidden');
-            }
-        }
-
-        async function handleBranchMovementSubmit(e) {
-            e.preventDefault();
-            const date = document.getElementById('bMovDate').value;
-            const type = document.getElementById('bMovType').value;
-            const productId = document.getElementById('bMovProduct').value;
-            const qty = parseInt(document.getElementById('bMovQty').value) || 1;
-            const amount = parseFloat(document.getElementById('bMovAmount').value) || 0;
-            const downpayment = parseFloat(document.getElementById('bMovDownpayment').value) || 0;
-            const paymentMethod = document.getElementById('bMovPaymentMethod').value;
-            const notes = document.getElementById('bMovNotes').value.trim();
-
-            const prod = products.find(p => p.id === productId);
-            if (!prod) return;
-
-            const direction = (type === 'SOLD' || type === 'MANUAL_OUT') ? 'OUT' : 'IN';
-            const currentStock = (inventory[currentRole] && inventory[currentRole][productId]) || 0;
-
-            if (direction === 'OUT' && currentStock < qty) {
-                return showToast(`Insufficient stock! You have ${currentStock} pcs.`, "error");
-            }
-
-            const newStock = direction === 'OUT' ? currentStock - qty : currentStock + qty;
-
-            // 1. Update cloud inventory
-            await supabaseClient.from('branch_inventory').upsert({
-                branch: currentRole,
-                product_id: productId,
-                quantity: newStock
-            });
-
-            // 2. Insert cloud movement
-            await supabaseClient.from('stock_movements').insert([{
-                id: 'MOV-' + Date.now(),
-                date,
-                branch: currentRole,
-                product_id: productId,
-                category: prod.category,
-                type,
-                direction,
-                qty,
-                amount: type === 'SOLD' ? amount : 0,
-                downpayment: type === 'SOLD' ? downpayment : 0,
-                payment_method: type === 'SOLD' ? paymentMethod : 'CASH',
-                notes
-            }]);
-
-            showToast("Movement saved to Cloud.");
-            document.getElementById('branchMovForm').reset();
-            setTodayDateInputs();
-            fetchCloudData();
-        }
-
-        async function handleBranchSwapSubmit(e) {
-            e.preventDefault();
-            const date = document.getElementById('swapDate').value;
-            const removedId = document.getElementById('swapRemovedProduct').value;
-            const addedId = document.getElementById('swapAddedProduct').value;
-            const qty = parseInt(document.getElementById('swapQty').value) || 1;
-            const notes = document.getElementById('swapNotes').value.trim();
-
-            if (removedId === addedId) return showToast("Select two different clear cases.", "error");
-
-            const remProd = products.find(p => p.id === removedId);
-            const addProd = products.find(p => p.id === addedId);
-
-            const remStock = (inventory[currentRole] && inventory[currentRole][removedId]) || 0;
-            const addStock = (inventory[currentRole] && inventory[currentRole][addedId]) || 0;
-
-            if (remStock < qty) return showToast(`Insufficient stock for ${remProd.name}! Available: ${remStock}`, "error");
-
-            // Update inventory
-            await supabaseClient.from('branch_inventory').upsert({ branch: currentRole, product_id: removedId, quantity: remStock - qty });
-            await supabaseClient.from('branch_inventory').upsert({ branch: currentRole, product_id: addedId, quantity: addStock + qty });
-
-            // Insert logs
-            await supabaseClient.from('stock_movements').insert([
-                {
-                    id: 'MOV-' + Date.now() + '-OUT', date, branch: currentRole, product_id: removedId,
-                    category: remProd.category, type: 'SWAP', direction: 'OUT', qty, amount: 0, downpayment: 0, payment_method: 'CASH',
-                    notes: `Swap: Deducted for ${addProd.name}. ${notes}`
-                },
-                {
-                    id: 'MOV-' + Date.now() + '-IN', date, branch: currentRole, product_id: addedId,
-                    category: addProd.category, type: 'SWAP', direction: 'IN', qty, amount: 0, downpayment: 0, payment_method: 'CASH',
-                    notes: `Swap: Added in exchange for ${remProd.name}. ${notes}`
-                }
-            ]);
-
-            showToast("Clear Case Swap saved.");
-            document.getElementById('branchSwapForm').reset();
-            setTodayDateInputs();
-            fetchCloudData();
-        }
-
-        async function handleBranchExpenseSubmit(e) {
-            e.preventDefault();
-            const date = document.getElementById('expDate').value;
-            const description = document.getElementById('expDesc').value.trim();
-            const amount = parseFloat(document.getElementById('expAmount').value) || 0;
-            const notes = document.getElementById('expNotes').value.trim();
-
-            await supabaseClient.from('branch_expenses').insert([{
-                id: 'EXP-' + Date.now(),
-                date,
-                branch: currentRole,
-                description,
-                amount,
-                notes
-            }]);
-
-            showToast("Expense saved to cloud.");
-            document.getElementById('branchExpenseForm').reset();
-            setTodayDateInputs();
-            fetchCloudData();
-        }
-
-        function renderBranchExpenses() {
-            const tbody = document.getElementById('branchExpensesTableBody');
-            const branchExp = expenses.filter(e => e.branch === currentRole);
-
-            if (branchExp.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" class="text-center py-6 text-slate-400">No expenses recorded for this branch.</td></tr>`;
-                return;
-            }
-
-            tbody.innerHTML = branchExp.map(e => `
-                <tr class="hover:bg-slate-50 transition">
-                    <td class="p-3 font-medium text-slate-700">${e.date}</td>
-                    <td class="p-3 font-semibold text-slate-900">${e.description}</td>
-                    <td class="p-3 text-slate-500">${e.notes || '-'}</td>
-                    <td class="p-3 text-right font-bold text-rose-600">₱${(e.amount || 0).toLocaleString('en-US', {minimumFractionDigits:2})}</td>
-                </tr>
-            `).join('');
+            setTimeout(() => toast.remove(), 3000);
         }
 
         async function handleBranchRestockSubmit(e) {
-    e.preventDefault();
-    const date = document.getElementById('reqDate').value;
-    const productId = document.getElementById('reqProduct').value;
-    const qty = parseInt(document.getElementById('reqQty').value) || 1;
-    const notes = document.getElementById('reqNotes').value.trim();
+            e.preventDefault();
+            const date = document.getElementById('reqDate').value;
+            const productId = document.getElementById('reqProduct').value;
+            const qty = parseInt(document.getElementById('reqQty').value) || 1;
+            const notes = document.getElementById('reqNotes').value.trim();
 
-    const newReq = {
-        id: 'REQ-' + Date.now(),
-        date,
-        branch: currentRole,
-        product_id: productId, // matching Supabase column name
-        qty,
-        notes,
-        status: 'PENDING'
-    };
+            const newReq = {
+                id: 'REQ-' + Date.now(),
+                date,
+                branch: currentRole,
+                product_id: productId,
+                qty,
+                notes,
+                status: 'PENDING'
+            };
 
-    // Save to Supabase Cloud
-    const { error } = await supabase.from('restock_requests').insert([newReq]);
+            const { error } = await supabase.from('restock_requests').insert([newReq]);
 
-    if (error) {
-        showToast("Error saving to cloud: " + error.message, "error");
-        return;
-    }
+            if (error) {
+                showToast("Error saving to cloud: " + error.message, "error");
+                return;
+            }
 
-    showToast("Restock request submitted to Cloud.");
-    document.getElementById('branchRestockForm').reset();
-    setTodayDateInputs();
-    
-    // Refresh data from cloud to update history log instantly
-    if (typeof loadDataFromCloud === 'function') {
-        loadDataFromCloud();
-    } else {
-        location.reload(); // Simple fallback reload to display updated cloud history
-    }
-}
+            showToast("Restock request submitted to Cloud.");
+            document.getElementById('branchRestockForm').reset();
+            setTodayDateInputs();
+            loadDataFromCloud();
         }
 
         function renderBranchRestockLog() {
@@ -1899,18 +429,18 @@
             const branchReqs = restockRequests.filter(r => r.branch === currentRole);
 
             if (branchReqs.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-6 text-slate-400">No restock requests submitted.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-6 text-slate-400">No restock requests sent yet.</td></tr>`;
                 return;
             }
 
             tbody.innerHTML = branchReqs.map(r => {
-                const prod = products.find(p => p.id === r.productId) || { name: 'Unknown' };
+                const prod = products.find(p => p.id === r.product_id) || { name: 'iPhone Clear Case' };
                 let statusBadge = '<span class="bg-amber-100 text-amber-800 px-2 py-0.5 rounded font-bold text-[10px]">PENDING</span>';
                 if (r.status === 'APPROVED') statusBadge = '<span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-bold text-[10px]">APPROVED</span>';
                 if (r.status === 'REJECTED') statusBadge = '<span class="bg-rose-100 text-rose-800 px-2 py-0.5 rounded font-bold text-[10px]">REJECTED</span>';
 
                 return `
-                    <tr class="hover:bg-slate-50 transition">
+                    <tr class="hover:bg-slate-50">
                         <td class="p-3 text-slate-700 font-medium">${r.date}</td>
                         <td class="p-3 font-semibold text-slate-800">${prod.name}</td>
                         <td class="p-3 text-right font-bold text-slate-900">${r.qty} pcs</td>
@@ -1921,8 +451,58 @@
             }).join('');
         }
 
-        function capitalize(str) {
-            return str.charAt(0).toUpperCase() + str.slice(1);
+        async function renderAdminRestockRequests() {
+            const tbody = document.getElementById('adminRestockTableBody');
+            const pending = restockRequests.filter(r => r.status === 'PENDING');
+
+            const badge = document.getElementById('pendingRestockBadge');
+            if (pending.length > 0) {
+                badge.innerText = pending.length;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+
+            if (pending.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-slate-400">No pending restock requests.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = pending.map(r => {
+                const prod = products.find(p => p.id === r.product_id) || { name: 'iPhone Clear Case' };
+                return `
+                    <tr class="hover:bg-slate-50">
+                        <td class="p-3 text-slate-700">${r.date}</td>
+                        <td class="p-3 font-bold text-slate-900">${r.branch}</td>
+                        <td class="p-3 font-semibold text-slate-800">${prod.name}</td>
+                        <td class="p-3 text-right font-bold text-brand-600 text-sm">${r.qty} pcs</td>
+                        <td class="p-3 text-slate-500">${r.notes || '-'}</td>
+                        <td class="p-3 text-center space-x-1">
+                            <button onclick="updateRestockStatus('${r.id}', 'APPROVED')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-semibold px-3 py-1.5 rounded transition shadow-sm">
+                                Approve
+                            </button>
+                            <button onclick="updateRestockStatus('${r.id}', 'REJECTED')" class="bg-rose-50 hover:bg-rose-100 text-rose-600 font-semibold px-3 py-1.5 rounded text-[11px] border border-rose-200 transition">
+                                Reject
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        async function updateRestockStatus(id, newStatus) {
+            const { error } = await supabase
+                .from('restock_requests')
+                .update({ status: newStatus })
+                .eq('id', id);
+
+            if (error) {
+                showToast("Error updating status: " + error.message, "error");
+                return;
+            }
+
+            showToast(`Request ${newStatus.toLowerCase()} successfully.`);
+            loadDataFromCloud();
         }
     </script>
 </body>
