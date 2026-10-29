@@ -1231,11 +1231,42 @@ stockMovements = (movData || []).map(m => ({
         }
 
         async function deleteMovement(id) {
-            if (confirm("Delete movement log permanently?")) {
-                await supabaseClient.from('stock_movements').delete().eq('id', id);
-                showToast("Movement deleted.", "info");
-                fetchCloudData();
-            }
+    if (!confirm("Delete movement log permanently?")) return;
+
+    const movement = stockMovements.find(m => m.id === id);
+    if (!movement) return;
+
+    const currentQty =
+        (inventory[movement.branch] &&
+        inventory[movement.branch][movement.productId]) || 0;
+
+    let correctedQty = currentQty;
+
+    if (movement.direction === 'IN') {
+        correctedQty = currentQty - movement.qty;
+    } else {
+        correctedQty = currentQty + movement.qty;
+    }
+
+    if (correctedQty < 0) correctedQty = 0;
+
+    await supabaseClient
+        .from('branch_inventory')
+        .upsert({
+            branch: movement.branch,
+            product_id: movement.productId,
+            quantity: correctedQty
+        });
+
+    await supabaseClient
+        .from('stock_movements')
+        .delete()
+        .eq('id', id);
+
+    showToast("Movement deleted and inventory corrected.", "info");
+
+    fetchCloudData();
+}
         }
 
         async function deleteSelectedMovements() {
