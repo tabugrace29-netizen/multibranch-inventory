@@ -1622,7 +1622,7 @@ stockMovements = (movData || []).map(m => ({
             let cashIn = 0;
             stockMovements.forEach(m => {
                 if (m.branch === branch && m.type === 'SOLD' && (m.paymentMethod === 'CASH' || !m.paymentMethod)) {
-                    let collected = (m.downpayment || 0) > 0 ? m.downpayment : (m.amount || 0);
+                    let collected = (m.downpayment || 0);
                     cashIn += collected;
                 }
             });
