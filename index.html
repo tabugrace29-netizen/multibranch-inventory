@@ -492,52 +492,7 @@
                 </div>
             </div>
         </div>
-</div>   <!-- End of AdminTabCash -->
 
-<!-- ADMIN TAB 7: Recently Deleted -->
-<div id="adminTabDeleted" class="hidden space-y-5">
-
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-
-        <div class="p-4 border-b border-slate-200">
-            <h3 class="font-bold text-slate-800 text-base">
-                Recently Deleted Records
-            </h3>
-            <p class="text-xs text-slate-500 mt-1">
-                View deleted sales, expenses, and stock movements.
-            </p>
-        </div>
-
-        <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs">
-
-                <thead class="bg-slate-100 text-slate-600 font-bold uppercase border-b border-slate-200">
-                    <tr>
-                        <th class="p-3">Deleted Date</th>
-                        <th class="p-3">Type</th>
-                        <th class="p-3">Branch</th>
-                        <th class="p-3">Description</th>
-                        <th class="p-3 text-right">Amount</th>
-                        <th class="p-3">Notes</th>
-                    </tr>
-                </thead>
-
-                <tbody id="deletedLogsTableBody">
-                    <tr>
-                        <td colspan="6" class="text-center py-6 text-slate-400">
-                            No deleted records found.
-                        </td>
-                    </tr>
-                </tbody>
-
-            </table>
-        </div>
-
-    </div>
-
-</div>
-
-<!-- ==================== BRANCH WORKSPACE ==================== -->
         <!-- ==================== BRANCH WORKSPACE ==================== -->
         <div id="branchWorkspace" class="hidden space-y-6">
             <div class="bg-gradient-to-r from-brand-600 via-brand-700 to-brand-800 rounded-2xl p-6 text-white shadow-lg flex flex-wrap justify-between items-center gap-4">
@@ -951,7 +906,6 @@
         let stockMovements = [];
         let restockRequests = [];
         let expenses = [];
-let deletedLogs = [];
 
         window.onload = async function() {
             setTodayDateInputs();
@@ -1134,12 +1088,6 @@ stockMovements = (movData || []).map(m => ({
                     amount: parseFloat(e.amount) || 0,
                     notes: e.notes
                 }));
-const { data: delData } = await supabaseClient
-    .from('deleted_logs')
-    .select('*')
-    .order('deleted_at', { ascending: false });
-
-deletedLogs = delData || [];
 
                 refreshUI();
             } catch (err) {
@@ -1152,14 +1100,12 @@ deletedLogs = delData || [];
         function refreshUI() {
             updatePendingRestockBadge();
             if (currentRole === 'ADMIN') {
-    renderAdminMovements();
-    renderAdminRestockRequests();
-    renderAdminProducts();
-    renderAdminStockTracker();
-    renderAdminSalesSummary();
-    renderAdminCashOnHand();
-    renderDeletedLogs();
-}
+                renderAdminMovements();
+                renderAdminRestockRequests();
+                renderAdminProducts();
+                renderAdminStockTracker();
+                renderAdminSalesSummary();
+                renderAdminCashOnHand();
             } else {
                 renderBranchHeaderCash();
                 renderBranchDashboard();
@@ -1642,53 +1588,6 @@ deletedLogs = delData || [];
                 GUIMBA: "cashCardGuimba", PANIQUI: "cashCardPaniqui", ONE: "cashCardOne",
                 TWO: "cashCardTwo", THREE: "cashCardThree", FOUR: "cashCardFour", FIVE: "cashCardFive"
             };
-function renderAdminCashOnHand() {
-
-    ...
-}
-
-function renderDeletedLogs() {
-
-    const tbody = document.getElementById('deletedLogsTableBody');
-
-    if (!tbody) return;
-
-    if (!deletedLogs.length) {
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="6" class="text-center py-6 text-slate-400">
-                    No deleted records found.
-                </td>
-            </tr>
-        `;
-        return;
-    }
-
-    tbody.innerHTML = deletedLogs.map(log => `
-        <tr class="hover:bg-slate-50">
-            <td class="p-3">
-                ${new Date(log.deleted_at).toLocaleDateString()}
-            </td>
-            <td class="p-3">
-                ${log.record_type || '-'}
-            </td>
-            <td class="p-3">
-                ${log.branch || '-'}
-            </td>
-            <td class="p-3">
-                ${log.description || '-'}
-            </td>
-            <td class="p-3 text-right">
-                ₱${Number(log.amount || 0).toLocaleString('en-US',{
-                    minimumFractionDigits:2
-                })}
-            </td>
-            <td class="p-3">
-                ${log.notes || '-'}
-            </td>
-        </tr>
-    `).join('');
-}
 
             BRANCHES.forEach(b => {
                 const cashData = calculateBranchCash(b);
