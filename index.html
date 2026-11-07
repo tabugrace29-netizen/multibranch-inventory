@@ -1207,13 +1207,17 @@ console.log("DELETE LOG ERROR:", error);
                 quantity: correctedQty
             });
 
-            await supabaseClient.from('deleted_logs').insert([{
-    id: movement.id,
-    deleted_at: new Date().toISOString(),
-    deleted_by: currentRole,
-    record_type: movement.type,
-    branch: movement.branch
-}]);
+            const result = await supabaseClient
+    .from('deleted_logs')
+    .insert([{
+        id: movement.id,
+        deleted_at: new Date().toISOString(),
+        deleted_by: currentRole,
+        record_type: movement.type,
+        branch: movement.branch
+    }]);
+
+alert(JSON.stringify(result));
 
 await supabaseClient.from('stock_movements').delete().eq('id', id);
 
