@@ -160,6 +160,9 @@
                 <button onclick="switchAdminTab('cash')" id="tab-admin-cash" class="px-4 py-2.5 rounded-xl transition flex items-center gap-2 text-slate-600 hover:bg-slate-50">
                     <i class="fa-solid fa-vault"></i> Branch Vaults
                 </button>
+<button onclick="switchAdminTab('deleted')" id="tab-admin-deleted" class="px-4 py-2.5 rounded-xl transition flex items-center gap-2 text-slate-600 hover:bg-slate-50">
+    <i class="fa-solid fa-trash"></i> Recently Deleted
+</button>
             </div>
 
             <!-- ADMIN TAB 1: Stock Movements -->
@@ -1133,7 +1136,7 @@ stockMovements = (movData || []).map(m => ({
         // ADMIN TAB ACTIONS (SUPABASE SYNCED)
         // =========================================================================
         function switchAdminTab(tab) {
-            ['movement', 'restock', 'products', 'stock', 'sales', 'cash'].forEach(t => {
+            ['movement', 'restock', 'products', 'stock', 'sales', 'cash', 'deleted'].forEach(t => {
                 const navBtn = document.getElementById(`tab-admin-${t}`);
                 const content = document.getElementById(`adminTab${capitalize(t)}`);
                 if (t === tab) {
