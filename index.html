@@ -160,9 +160,9 @@
                 <button onclick="switchAdminTab('cash')" id="tab-admin-cash" class="px-4 py-2.5 rounded-xl transition flex items-center gap-2 text-slate-600 hover:bg-slate-50">
                     <i class="fa-solid fa-vault"></i> Branch Vaults
                 </button>
-<button onclick="switchAdminTab('deleted')" id="tab-admin-deleted" class="px-4 py-2.5 rounded-xl transition flex items-center gap-2 text-slate-600 hover:bg-slate-50">
-    <i class="fa-solid fa-trash"></i> Recently Deleted
-</button>
+                <button onclick="switchAdminTab('deleted')" id="tab-admin-deleted" class="px-4 py-2.5 rounded-xl transition flex items-center gap-2 text-slate-600 hover:bg-slate-50">
+                    <i class="fa-solid fa-trash"></i> Recently Deleted
+                </button>
             </div>
 
             <!-- ADMIN TAB 1: Stock Movements -->
@@ -491,44 +491,37 @@
                     <div id="cashCardFive" class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-3"></div>
                 </div>
             </div>
+
+            <!-- ADMIN TAB 7: Recently Deleted -->
+            <div id="adminTabDeleted" class="hidden space-y-4">
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                    <h3 class="font-bold text-slate-800 text-base">Recently Deleted Records</h3>
+                    <p class="text-xs text-slate-500 mt-1">View deleted sales, expenses, and stock movements.</p>
+                </div>
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-slate-100 text-slate-600 font-bold uppercase border-b border-slate-200">
+                                <tr>
+                                    <th class="p-3">Deleted Date</th>
+                                    <th class="p-3">Type</th>
+                                    <th class="p-3">Branch</th>
+                                    <th class="p-3">Description</th>
+                                    <th class="p-3 text-right">Amount</th>
+                                    <th class="p-3">Notes</th>
+                                </tr>
+                            </thead>
+                            <tbody id="deletedLogsTableBody">
+                                <tr>
+                                    <td colspan="6" class="text-center py-6 text-slate-400">No deleted records found.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
-<!-- ADMIN TAB 7: Recently Deleted -->
-<div id="adminTabDeleted" class="hidden space-y-4">
 
-    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-        <h3 class="font-bold text-slate-800 text-base">
-            Recently Deleted Records
-        </h3>
-        <p class="text-xs text-slate-500 mt-1">
-            View deleted sales, expenses, and stock movements.
-        </p>
-    </div>
-
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-        <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs">
-                <thead class="bg-slate-100 text-slate-600 font-bold uppercase border-b border-slate-200">
-                    <tr>
-                        <th class="p-3">Deleted Date</th>
-                        <th class="p-3">Type</th>
-                        <th class="p-3">Branch</th>
-                        <th class="p-3">Description</th>
-                        <th class="p-3 text-right">Amount</th>
-                        <th class="p-3">Notes</th>
-                    </tr>
-                </thead>
-                <tbody id="deletedLogsTableBody">
-                    <tr>
-                        <td colspan="6" class="text-center py-6 text-slate-400">
-                            No deleted records found.
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-</div>
         <!-- ==================== BRANCH WORKSPACE ==================== -->
         <div id="branchWorkspace" class="hidden space-y-6">
             <div class="bg-gradient-to-r from-brand-600 via-brand-700 to-brand-800 rounded-2xl p-6 text-white shadow-lg flex flex-wrap justify-between items-center gap-4">
@@ -710,92 +703,17 @@
                             <table class="w-full text-left text-xs">
                                 <thead class="bg-slate-100 text-slate-600 font-bold uppercase border-b border-slate-200">
                                     <tr>
-    <th class="p-3">Date</th>
-    <th class="p-3">Type</th>
-    <th class="p-3">Product Name</th>
-    <th class="p-3 text-right">Qty</th>
-    <th class="p-3 text-right">Amount</th>
-    <th class="p-3 text-right">Downpayment</th>
-    <th class="p-3 text-right">Balance</th>
-    <th class="p-3">Notes</th>
-</tr>
-                                </thead>
-                                <tbody id="branchMovementHistoryTableBody" class="divide-y divide-slate-200">
-                                    <!-- Dynamic rows -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- BRANCH TAB 4: Clear Case Swap -->
-            <div id="branchTabSwap" class="hidden space-y-5">
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm h-fit space-y-4">
-                        <div>
-                            <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
-                                <i class="fa-solid fa-rotate text-brand-500"></i> Clear Case Swap Process
-                            </h3>
-                            <p class="text-xs text-slate-500 mt-1">Deducts removed case and adds newly chosen case.</p>
-                        </div>
-
-                        <form id="branchSwapForm" onsubmit="handleBranchSwapSubmit(event)" class="space-y-4 text-xs">
-                            <div>
-                                <label class="block font-semibold text-slate-600 mb-1">Swap Date *</label>
-                                <input type="date" id="swapDate" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none">
-                            </div>
-
-                            <div class="bg-rose-50 p-4 rounded-xl border border-rose-200 space-y-2">
-                                <span class="font-bold text-rose-700 flex items-center gap-1.5">
-                                    <i class="fa-solid fa-minus-circle"></i> Case Removed (Deducted)
-                                </span>
-                                <select id="swapRemovedProduct" required class="w-full p-2.5 bg-white border border-rose-200 rounded-xl focus:ring-2 focus:ring-rose-500 outline-none">
-                                    <!-- Dynamic Clear Cases -->
-                                </select>
-                            </div>
-
-                            <div class="bg-emerald-50 p-4 rounded-xl border border-emerald-200 space-y-2">
-                                <span class="font-bold text-emerald-700 flex items-center gap-1.5">
-                                    <i class="fa-solid fa-plus-circle"></i> Case Added (Added)
-                                </span>
-                                <select id="swapAddedProduct" required class="w-full p-2.5 bg-white border border-emerald-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none">
-                                    <!-- Dynamic Clear Cases -->
-                                </select>
-                            </div>
-
-                            <div>
-                                <label class="block font-semibold text-slate-600 mb-1">Swap Quantity *</label>
-                                <input type="number" id="swapQty" min="1" value="1" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none">
-                            </div>
-
-                            <div>
-                                <label class="block font-semibold text-slate-600 mb-1">Notes / Reason</label>
-                                <input type="text" id="swapNotes" placeholder="e.g. Model exchange requested..." class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none">
-                            </div>
-
-                            <button type="submit" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3 rounded-xl transition shadow-lg shadow-brand-500/20">
-                                Execute Case Swap
-                            </button>
-                        </form>
-                    </div>
-
-                    <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-                        <div class="p-4 border-b border-slate-200">
-                            <h3 class="font-bold text-slate-800 text-sm">Clear Case Swap History</h3>
-                        </div>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left text-xs">
-                                <thead class="bg-slate-100 text-slate-600 font-bold uppercase border-b border-slate-200">
-                                    <tr>
                                         <th class="p-3">Date</th>
-                                        <th class="p-3">Removed Product</th>
-                                        <th class="p-3">Added Product</th>
+                                        <th class="p-3">Type</th>
+                                        <th class="p-3">Product Name</th>
                                         <th class="p-3 text-right">Qty</th>
+                                        <th class="p-3 text-right">Amount</th>
+                                        <th class="p-3 text-right">Downpayment</th>
+                                        <th class="p-3 text-right">Balance</th>
                                         <th class="p-3">Notes</th>
                                     </tr>
                                 </thead>
-                                <tbody id="branchSwapHistoryTableBody" class="divide-y divide-slate-200">
+                                <tbody id="branchMovementHistoryTableBody" class="divide-y divide-slate-200">
                                     <!-- Dynamic rows -->
                                 </tbody>
                             </table>
@@ -935,10 +853,9 @@
             "ONE", "TWO", "THREE", "FOUR", "FIVE"
         ];
 
-        // Global state refreshed live from Supabase
         let currentRole = "ADMIN";
         let products = [];
-        let inventory = {}; // { BRANCH: { prodId: qty } }
+        let inventory = {}; 
         let stockMovements = [];
         let restockRequests = [];
         let expenses = [];
@@ -978,7 +895,6 @@
             });
         }
 
-        // --- SUPABASE CLOUD AUTHENTICATION ---
         async function loginSystem() {
             const branch = document.getElementById("loginBranch").value;
             const password = document.getElementById("loginPassword").value;
@@ -1048,13 +964,11 @@
             }
         }
 
-        // --- FETCH EVERYTHING LIVE FROM SUPABASE ---
         async function fetchCloudData() {
             const icon = document.getElementById("refreshIcon");
             if (icon) icon.classList.add("fa-spin");
 
             try {
-                // 1. Fetch Products
                 const { data: prodData } = await supabaseClient.from('products').select('*');
                 products = (prodData || []).map(p => ({
                     id: p.id,
@@ -1063,7 +977,6 @@
                     price: parseFloat(p.price) || 0
                 }));
 
-                // 2. Fetch Inventory
                 const { data: invData } = await supabaseClient.from('branch_inventory').select('*');
                 inventory = {};
                 BRANCHES.forEach(b => inventory[b] = {});
@@ -1072,31 +985,26 @@
                     inventory[row.branch][row.product_id] = row.quantity;
                 });
 
-                // 3. Fetch Stock Movements
-const { data: movData, error: movError } = await supabaseClient
-    .from('stock_movements')
-    .select('*')
-    .order('date', { ascending: false });
+                const { data: movData } = await supabaseClient
+                    .from('stock_movements')
+                    .select('*')
+                    .order('date', { ascending: false });
 
-console.log('MOVEMENTS DATA:', movData);
-console.log('MOVEMENTS ERROR:', movError);
+                stockMovements = (movData || []).map(m => ({
+                    id: m.id,
+                    date: m.date,
+                    branch: m.branch,
+                    productId: m.product_id,
+                    category: m.category,
+                    type: m.type,
+                    direction: m.direction,
+                    qty: m.qty,
+                    amount: parseFloat(m.amount) || 0,
+                    downpayment: parseFloat(m.downpayment) || 0,
+                    paymentMethod: m.payment_method,
+                    notes: m.notes
+                }));
 
-stockMovements = (movData || []).map(m => ({
-    id: m.id,
-    date: m.date,
-    branch: m.branch,
-    productId: m.product_id,
-    category: m.category,
-    type: m.type,
-    direction: m.direction,
-    qty: m.qty,
-    amount: parseFloat(m.amount) || 0,
-    downpayment: parseFloat(m.downpayment) || 0,
-    paymentMethod: m.payment_method,
-    notes: m.notes
-}));
-
-                // 4. Fetch Restock Requests
                 const { data: reqData } = await supabaseClient
                     .from('restock_requests')
                     .select('*')
@@ -1111,7 +1019,6 @@ stockMovements = (movData || []).map(m => ({
                     status: r.status
                 }));
 
-                // 5. Fetch Expenses
                 const { data: expData } = await supabaseClient
                     .from('branch_expenses')
                     .select('*')
@@ -1168,20 +1075,11 @@ stockMovements = (movData || []).map(m => ({
             }, 3000);
         }
 
-        // =========================================================================
-        // ADMIN TAB ACTIONS (SUPABASE SYNCED)
-        // =========================================================================
-        
-
+        function switchAdminTab(tab) {
             ['movement', 'restock', 'products', 'stock', 'sales', 'cash', 'deleted'].forEach(t => {
                 const navBtn = document.getElementById(`tab-admin-${t}`);
-const content = document.getElementById(`adminTab${capitalize(t)}`);
-
-console.log(
-    t,
-    "button:", navBtn,
-    "content:", content
-);
+                const content = document.getElementById(`adminTab${capitalize(t)}`);
+                if (!navBtn || !content) return;
                 if (t === tab) {
                     navBtn.className = "px-4 py-2.5 rounded-xl transition flex items-center gap-2 bg-brand-50 text-brand-700 font-bold border border-brand-200/50 shadow-sm";
                     content.classList.remove('hidden');
@@ -1275,38 +1173,33 @@ console.log(
         }
 
         async function deleteMovement(id) {
-    if (!confirm("Delete movement log permanently?")) return;
+            if (!confirm("Delete movement log permanently?")) return;
+            const movement = stockMovements.find(m => m.id === id);
+            if (!movement) return;
 
-    const movement = stockMovements.find(m => m.id === id);
-    if (!movement) return;
+            const currentQty = (inventory[movement.branch] && inventory[movement.branch][movement.productId]) || 0;
+            let correctedQty = currentQty;
 
-    const currentQty =
-        (inventory[movement.branch] &&
-        inventory[movement.branch][movement.productId]) || 0;
+            if (movement.direction === 'IN') {
+                correctedQty = currentQty - movement.qty;
+            } else {
+                correctedQty = currentQty + movement.qty;
+            }
 
-    let correctedQty = currentQty;
+            if (correctedQty < 0) correctedQty = 0;
 
-    if (movement.direction === 'IN') {
-        correctedQty = currentQty - movement.qty;
-    } else {
-        correctedQty = currentQty + movement.qty;
-    }
+            await supabaseClient.from('branch_inventory').upsert({
+                branch: movement.branch,
+                product_id: movement.productId,
+                quantity: correctedQty
+            });
 
-    if (correctedQty < 0) correctedQty = 0;
+            await supabaseClient.from('stock_movements').delete().eq('id', id);
 
-    await supabaseClient.from('branch_inventory').upsert({
-        branch: movement.branch,
-        product_id: movement.productId,
-        quantity: correctedQty
-    });
+            showToast("Movement deleted and inventory corrected.", "info");
+            fetchCloudData();
+        }
 
-    await supabaseClient.from('stock_movements')
-        .delete()
-        .eq('id', id);
-
-    showToast("Movement deleted and inventory corrected.", "info");
-    fetchCloudData();
-}
         async function deleteSelectedMovements() {
             const checked = Array.from(document.querySelectorAll('.movCheckbox:checked')).map(cb => cb.value);
             if (checked.length === 0) return showToast("No rows selected.", "error");
@@ -1370,10 +1263,8 @@ console.log(
             const req = restockRequests.find(r => r.id === id);
             if (!req) return;
 
-            // Update Restock Status
             await supabaseClient.from('restock_requests').update({ status: 'APPROVED' }).eq('id', id);
 
-            // Increment Branch Inventory
             const currentStock = (inventory[req.branch] && inventory[req.branch][req.productId]) || 0;
             await supabaseClient.from('branch_inventory').upsert({
                 branch: req.branch,
@@ -1381,7 +1272,6 @@ console.log(
                 quantity: currentStock + req.qty
             });
 
-            // Add Stock Movement Log
             const prod = products.find(p => p.id === req.productId);
             await supabaseClient.from('stock_movements').insert([{
                 id: 'MOV-' + Date.now(),
@@ -1450,7 +1340,6 @@ console.log(
                 const newId = 'P' + (Date.now() % 10000);
                 await supabaseClient.from('products').insert([{ id: newId, name, category, price }]);
 
-                // Initialize branch stock in cloud DB
                 for (const b of BRANCHES) {
                     await supabaseClient.from('branch_inventory').upsert({
                         branch: b,
@@ -1677,13 +1566,11 @@ console.log(
             return { cashIn, cashOut, netCash: cashIn - cashOut };
         }
 
-        // =========================================================================
-        // BRANCH TAB ACTIONS (SUPABASE SYNCED)
-        // =========================================================================
         function switchBranchTab(tab) {
-           ['dashboard', 'inventory', 'movement', 'expenses', 'restock'].forEach(t => {
+            ['dashboard', 'inventory', 'movement', 'expenses', 'restock'].forEach(t => {
                 const navBtn = document.getElementById(`tab-branch-${t}`);
                 const content = document.getElementById(`branchTab${capitalize(t)}`);
+                if (!navBtn || !content) return;
                 if (t === tab) {
                     navBtn.className = "px-4 py-2.5 rounded-xl transition flex items-center gap-2 bg-brand-50 text-brand-700 font-bold border border-brand-200/50 shadow-sm";
                     content.classList.remove('hidden');
@@ -1795,8 +1682,6 @@ console.log(
 
         function populateBranchProductSelects() {
             const movSelect = document.getElementById('bMovProduct');
-            const swapRemSelect = document.getElementById('swapRemovedProduct');
-            const swapAddSelect = document.getElementById('swapAddedProduct');
             const reqSelect = document.getElementById('reqProduct');
 
             if (!movSelect) return;
@@ -1804,17 +1689,6 @@ console.log(
             const allOpts = products.map(p => `<option value="${p.id}">${p.name} (${p.category})</option>`).join('');
             movSelect.innerHTML = allOpts;
             reqSelect.innerHTML = allOpts;
-
-            const clearCases = products.filter(p => p.category === 'CLEAR CASE');
-            const swapOpts = clearCases.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
-
-            if (clearCases.length > 0) {
-                swapRemSelect.innerHTML = swapOpts;
-                swapAddSelect.innerHTML = swapOpts;
-            } else {
-                swapRemSelect.innerHTML = `<option value="">No Clear Cases</option>`;
-                swapAddSelect.innerHTML = `<option value="">No Clear Cases</option>`;
-            }
         }
 
         function updateBranchMovFormState() {
@@ -1854,14 +1728,12 @@ console.log(
 
             const newStock = direction === 'OUT' ? currentStock - qty : currentStock + qty;
 
-            // 1. Update cloud inventory
             await supabaseClient.from('branch_inventory').upsert({
                 branch: currentRole,
                 product_id: productId,
                 quantity: newStock
             });
 
-            // 2. Insert cloud movement
             await supabaseClient.from('stock_movements').insert([{
                 id: 'MOV-' + Date.now(),
                 date,
@@ -1883,109 +1755,30 @@ console.log(
             fetchCloudData();
         }
 
-function renderBranchMovementHistory() {
-    const tbody = document.getElementById('branchMovementHistoryTableBody');
+        function renderBranchMovementHistory() {
+            const tbody = document.getElementById('branchMovementHistoryTableBody');
+            const branchMovs = stockMovements.filter(m => m.branch === currentRole && m.type !== 'SWAP');
 
-    const branchMovs = stockMovements.filter(
-        m => m.branch === currentRole && m.type !== 'SWAP'
-    );
-
-    if (branchMovs.length === 0) {
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="8" class="text-center py-6 text-slate-400">
-                    No stock movements recorded.
-                </td>
-            </tr>
-        `;
-        return;
-    }
-
-    tbody.innerHTML = branchMovs.map(m => {
-        const prod = products.find(p => p.id === m.productId) || { name: 'Unknown' };
-
-        const downpayment = m.downpayment || 0;
-        const balance = Math.max(0, (m.amount || 0) - downpayment);
-
-        return `
-            <tr>
-                <td class="p-3">${m.date}</td>
-                <td class="p-3">${m.type}</td>
-                <td class="p-3">${prod.name}</td>
-                <td class="p-3 text-right">${m.qty}</td>
-                <td class="p-3 text-right">₱${(m.amount || 0).toFixed(2)}</td>
-                <td class="p-3 text-right">₱${downpayment.toFixed(2)}</td>
-                <td class="p-3 text-right">₱${balance.toFixed(2)}</td>
-                <td class="p-3">${m.notes || '-'}</td>
-            </tr>
-        `;
-    }).join('');
-}
-
-        async function handleBranchSwapSubmit(e) {
-            e.preventDefault();
-            const date = document.getElementById('swapDate').value;
-            const removedId = document.getElementById('swapRemovedProduct').value;
-            const addedId = document.getElementById('swapAddedProduct').value;
-            const qty = parseInt(document.getElementById('swapQty').value) || 1;
-            const notes = document.getElementById('swapNotes').value.trim();
-
-            if (removedId === addedId) return showToast("Select two different clear cases.", "error");
-
-            const remProd = products.find(p => p.id === removedId);
-            const addProd = products.find(p => p.id === addedId);
-
-            const remStock = (inventory[currentRole] && inventory[currentRole][removedId]) || 0;
-            const addStock = (inventory[currentRole] && inventory[currentRole][addedId]) || 0;
-
-            if (remStock < qty) return showToast(`Insufficient stock for ${remProd.name}! Available: ${remStock}`, "error");
-
-            // Update inventory
-            await supabaseClient.from('branch_inventory').upsert({ branch: currentRole, product_id: removedId, quantity: remStock - qty });
-            await supabaseClient.from('branch_inventory').upsert({ branch: currentRole, product_id: addedId, quantity: addStock + qty });
-
-            // Insert logs
-            await supabaseClient.from('stock_movements').insert([
-                {
-                    id: 'MOV-' + Date.now() + '-OUT', date, branch: currentRole, product_id: removedId,
-                    category: remProd.category, type: 'SWAP', direction: 'OUT', qty, amount: 0, downpayment: 0, payment_method: 'CASH',
-                    notes: `Swap: Deducted for ${addProd.name}. ${notes}`
-                },
-                {
-                    id: 'MOV-' + Date.now() + '-IN', date, branch: currentRole, product_id: addedId,
-                    category: addProd.category, type: 'SWAP', direction: 'IN', qty, amount: 0, downpayment: 0, payment_method: 'CASH',
-                    notes: `Swap: Added in exchange for ${remProd.name}. ${notes}`
-                }
-            ]);
-
-            showToast("Clear Case Swap saved.");
-            document.getElementById('branchSwapForm').reset();
-            setTodayDateInputs();
-            fetchCloudData();
-        }
-
-        function renderBranchSwapHistory() {
-            const tbody = document.getElementById('branchSwapHistoryTableBody');
-            const swapsOut = stockMovements.filter(m => m.branch === currentRole && m.type === 'SWAP' && m.direction === 'OUT');
-
-            if (swapsOut.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-6 text-slate-400">No clear case swaps recorded.</td></tr>`;
+            if (branchMovs.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" class="text-center py-6 text-slate-400">No stock movements recorded.</td></tr>`;
                 return;
             }
 
-            tbody.innerHTML = swapsOut.map(m => {
-                const remProd = products.find(p => p.id === m.productId) || { name: 'Unknown' };
-                // Find matching IN movement created at the same time
-                const addMov = stockMovements.find(x => x.branch === currentRole && x.type === 'SWAP' && x.direction === 'IN' && x.date === m.date && Math.abs(parseInt(x.id.split('-')[1]) - parseInt(m.id.split('-')[1])) < 500);
-                const addProd = addMov ? (products.find(p => p.id === addMov.productId) || { name: 'Unknown' }) : { name: 'Unknown' };
+            tbody.innerHTML = branchMovs.map(m => {
+                const prod = products.find(p => p.id === m.productId) || { name: 'Unknown' };
+                const downpayment = m.downpayment || 0;
+                const balance = Math.max(0, (m.amount || 0) - downpayment);
 
                 return `
-                    <tr class="hover:bg-slate-50 transition">
-                        <td class="p-3 font-medium text-slate-700">${m.date}</td>
-                        <td class="p-3 font-semibold text-rose-600">${remProd.name}</td>
-                        <td class="p-3 font-semibold text-emerald-600">${addProd.name}</td>
-                        <td class="p-3 text-right font-bold text-slate-900">${m.qty} pcs</td>
-                        <td class="p-3 text-slate-500">${m.notes || '-'}</td>
+                    <tr>
+                        <td class="p-3">${m.date}</td>
+                        <td class="p-3">${m.type}</td>
+                        <td class="p-3">${prod.name}</td>
+                        <td class="p-3 text-right">${m.qty}</td>
+                        <td class="p-3 text-right">₱${(m.amount || 0).toFixed(2)}</td>
+                        <td class="p-3 text-right">₱${downpayment.toFixed(2)}</td>
+                        <td class="p-3 text-right">₱${balance.toFixed(2)}</td>
+                        <td class="p-3">${m.notes || '-'}</td>
                     </tr>
                 `;
             }).join('');
