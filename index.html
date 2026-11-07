@@ -1172,9 +1172,37 @@ stockMovements = (movData || []).map(m => ({
         // ADMIN TAB ACTIONS (SUPABASE SYNCED)
         // =========================================================================
         function switchAdminTab(tab) {
+
+    ['movement', 'restock', 'products', 'stock', 'sales', 'cash', 'deleted'].forEach(t => {
+
+        const navBtn = document.getElementById(`tab-admin-${t}`);
+        const content = document.getElementById(`adminTab${capitalize(t)}`);
+
+        if (!navBtn || !content) {
+            console.log("MISSING:", t, navBtn, content);
+            return;
+        }
+
+        if (t === tab) {
+            navBtn.className = "px-4 py-2.5 rounded-xl transition flex items-center gap-2 bg-brand-50 text-brand-700 font-bold border border-brand-200/50 shadow-sm";
+            content.classList.remove('hidden');
+        } else {
+            navBtn.className = "px-4 py-2.5 rounded-xl transition flex items-center gap-2 text-slate-600 hover:bg-slate-50";
+            content.classList.add('hidden');
+        }
+    });
+
+    refreshUI();
+}
             ['movement', 'restock', 'products', 'stock', 'sales', 'cash', 'deleted'].forEach(t => {
                 const navBtn = document.getElementById(`tab-admin-${t}`);
-                const content = document.getElementById(`adminTab${capitalize(t)}`);
+const content = document.getElementById(`adminTab${capitalize(t)}`);
+
+console.log(
+    t,
+    "button:", navBtn,
+    "content:", content
+);
                 if (t === tab) {
                     navBtn.className = "px-4 py-2.5 rounded-xl transition flex items-center gap-2 bg-brand-50 text-brand-700 font-bold border border-brand-200/50 shadow-sm";
                     content.classList.remove('hidden');
