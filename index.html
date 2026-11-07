@@ -951,6 +951,7 @@
         let stockMovements = [];
         let restockRequests = [];
         let expenses = [];
+let deletedLogs = [];
 
         window.onload = async function() {
             setTodayDateInputs();
@@ -1133,6 +1134,12 @@ stockMovements = (movData || []).map(m => ({
                     amount: parseFloat(e.amount) || 0,
                     notes: e.notes
                 }));
+const { data: delData } = await supabaseClient
+    .from('deleted_logs')
+    .select('*')
+    .order('deleted_at', { ascending: false });
+
+deletedLogs = delData || [];
 
                 refreshUI();
             } catch (err) {
@@ -1145,12 +1152,14 @@ stockMovements = (movData || []).map(m => ({
         function refreshUI() {
             updatePendingRestockBadge();
             if (currentRole === 'ADMIN') {
-                renderAdminMovements();
-                renderAdminRestockRequests();
-                renderAdminProducts();
-                renderAdminStockTracker();
-                renderAdminSalesSummary();
-                renderAdminCashOnHand();
+    renderAdminMovements();
+    renderAdminRestockRequests();
+    renderAdminProducts();
+    renderAdminStockTracker();
+    renderAdminSalesSummary();
+    renderAdminCashOnHand();
+    renderDeletedLogs();
+}
             } else {
                 renderBranchHeaderCash();
                 renderBranchDashboard();
@@ -1633,6 +1642,53 @@ stockMovements = (movData || []).map(m => ({
                 GUIMBA: "cashCardGuimba", PANIQUI: "cashCardPaniqui", ONE: "cashCardOne",
                 TWO: "cashCardTwo", THREE: "cashCardThree", FOUR: "cashCardFour", FIVE: "cashCardFive"
             };
+function renderAdminCashOnHand() {
+
+    ...
+}
+
+function renderDeletedLogs() {
+
+    const tbody = document.getElementById('deletedLogsTableBody');
+
+    if (!tbody) return;
+
+    if (!deletedLogs.length) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="6" class="text-center py-6 text-slate-400">
+                    No deleted records found.
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    tbody.innerHTML = deletedLogs.map(log => `
+        <tr class="hover:bg-slate-50">
+            <td class="p-3">
+                ${new Date(log.deleted_at).toLocaleDateString()}
+            </td>
+            <td class="p-3">
+                ${log.record_type || '-'}
+            </td>
+            <td class="p-3">
+                ${log.branch || '-'}
+            </td>
+            <td class="p-3">
+                ${log.description || '-'}
+            </td>
+            <td class="p-3 text-right">
+                ₱${Number(log.amount || 0).toLocaleString('en-US',{
+                    minimumFractionDigits:2
+                })}
+            </td>
+            <td class="p-3">
+                ${log.notes || '-'}
+            </td>
+        </tr>
+    `).join('');
+}
 
             BRANCHES.forEach(b => {
                 const cashData = calculateBranchCash(b);
