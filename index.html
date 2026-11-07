@@ -496,7 +496,7 @@
             <div id="adminTabDeleted" class="hidden space-y-4">
                 <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
                     <h3 class="font-bold text-slate-800 text-base">Recently Deleted Records</h3>
-                    <p class="text-xs text-slate-500 mt-1">View deleted sales, expenses, and stock movements.</p>
+                    <p class="text-xs text-slate-500 mt-1">Audit trail of deleted stock movements matching exact transaction details.</p>
                 </div>
                 <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                     <div class="overflow-x-auto">
@@ -504,16 +504,21 @@
                             <thead class="bg-slate-100 text-slate-600 font-bold uppercase border-b border-slate-200">
                                 <tr>
                                     <th class="p-3">Deleted Date</th>
-                                    <th class="p-3">Type</th>
+                                    <th class="p-3">Date</th>
                                     <th class="p-3">Branch</th>
-                                    <th class="p-3">Description</th>
+                                    <th class="p-3">Category</th>
+                                    <th class="p-3">Product</th>
+                                    <th class="p-3">Type</th>
+                                    <th class="p-3">Dir</th>
+                                    <th class="p-3 text-right">Qty</th>
                                     <th class="p-3 text-right">Amount</th>
                                     <th class="p-3">Notes</th>
+                                    <th class="p-3">Deleted By</th>
                                 </tr>
                             </thead>
                             <tbody id="deletedLogsTableBody">
                                 <tr>
-                                    <td colspan="6" class="text-center py-6 text-slate-400">No deleted records found.</td>
+                                    <td colspan="11" class="text-center py-6 text-slate-400">No deleted records found.</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -1185,15 +1190,10 @@
             const movement = stockMovements.find(m => m.id === id);
             if (!movement) return;
 
+            const prod = products.find(p => p.id === movement.productId) || { name: 'Unknown' };
+
             const currentQty = (inventory[movement.branch] && inventory[movement.branch][movement.productId]) || 0;
-            let correctedQty = currentQty;
-
-            if (movement.direction === 'IN') {
-                correctedQty = currentQty - movement.qty;
-            } else {
-                correctedQty = currentQty + movement.qty;
-            }
-
+            let correctedQty = movement.direction === 'IN' ? currentQty - movement.qty : currentQty + movement.qty;
             if (correctedQty < 0) correctedQty = 0;
 
             await supabaseClient.from('deleted_logs').insert([{
@@ -1201,7 +1201,14 @@
                 deleted_at: new Date().toISOString(),
                 deleted_by: currentRole,
                 record_type: movement.type,
-                branch: movement.branch
+                branch: movement.branch,
+                log_date: movement.date,
+                category: movement.category,
+                product_name: prod.name,
+                direction: movement.direction,
+                qty: movement.qty,
+                amount: movement.amount || 0,
+                notes: movement.notes || ''
             }]);
 
             await supabaseClient.from('branch_inventory').upsert({
@@ -1212,16 +1219,54 @@
 
             await supabaseClient.from('stock_movements').delete().eq('id', id);
 
-            showToast("Movement deleted and inventory corrected.", "info");
+            showToast("Movement deleted and logged to Recently Deleted.", "info");
             fetchCloudData();
         }
 
         async function deleteSelectedMovements() {
-            const checked = Array.from(document.querySelectorAll('.movCheckbox:checked')).map(cb => cb.value);
-            if (checked.length === 0) return showToast("No rows selected.", "error");
-            if (confirm(`Delete ${checked.length} selected movements?`)) {
-                await supabaseClient.from('stock_movements').delete().in('id', checked);
-                showToast(`Deleted ${checked.length} movement logs.`, "info");
+            const checkedIds = Array.from(document.querySelectorAll('.movCheckbox:checked')).map(cb => cb.value);
+            if (checkedIds.length === 0) return showToast("No rows selected.", "error");
+
+            if (confirm(`Delete ${checkedIds.length} selected movements?`)) {
+                const deletedRecords = [];
+                for (const id of checkedIds) {
+                    const m = stockMovements.find(item => item.id === id);
+                    if (m) {
+                        const prod = products.find(p => p.id === m.productId) || { name: 'Unknown' };
+                        deletedRecords.push({
+                            id: 'DEL-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
+                            deleted_at: new Date().toISOString(),
+                            deleted_by: currentRole,
+                            record_type: m.type,
+                            branch: m.branch,
+                            log_date: m.date,
+                            category: m.category,
+                            product_name: prod.name,
+                            direction: m.direction,
+                            qty: m.qty,
+                            amount: m.amount || 0,
+                            notes: m.notes || ''
+                        });
+
+                        const currentQty = (inventory[m.branch] && inventory[m.branch][m.productId]) || 0;
+                        let correctedQty = m.direction === 'IN' ? currentQty - m.qty : currentQty + m.qty;
+                        if (correctedQty < 0) correctedQty = 0;
+
+                        await supabaseClient.from('branch_inventory').upsert({
+                            branch: m.branch,
+                            product_id: m.productId,
+                            quantity: correctedQty
+                        });
+                    }
+                }
+
+                if (deletedRecords.length > 0) {
+                    await supabaseClient.from('deleted_logs').insert(deletedRecords);
+                }
+
+                await supabaseClient.from('stock_movements').delete().in('id', checkedIds);
+
+                showToast(`Deleted ${checkedIds.length} movement logs.`, "info");
                 fetchCloudData();
             }
         }
@@ -1231,20 +1276,31 @@
             if (!tbody) return;
 
             if (deletedLogs.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-slate-400">No deleted records found.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="11" class="text-center py-6 text-slate-400">No deleted records found.</td></tr>`;
                 return;
             }
 
             tbody.innerHTML = deletedLogs.map(log => {
-                const formattedDate = log.deleted_at ? new Date(log.deleted_at).toLocaleString() : '-';
+                const formattedDeletedDate = log.deleted_at ? new Date(log.deleted_at).toLocaleString() : '-';
+                const isIn = log.direction === 'IN';
+                
                 return `
                     <tr class="hover:bg-slate-50 transition">
-                        <td class="p-3 text-slate-700 font-medium">${formattedDate}</td>
-                        <td class="p-3"><span class="bg-rose-50 text-rose-700 px-2 py-0.5 rounded text-[10px] font-bold">${log.record_type || 'DELETED'}</span></td>
+                        <td class="p-3 text-slate-500 font-medium">${formattedDeletedDate}</td>
+                        <td class="p-3 text-slate-700 font-semibold">${log.log_date || '-'}</td>
                         <td class="p-3 font-bold text-slate-900">${log.branch || 'ADMIN'}</td>
-                        <td class="p-3 text-slate-800">Record ID: ${log.id}</td>
-                        <td class="p-3 text-right text-slate-600">-</td>
-                        <td class="p-3 text-slate-500">Deleted by: ${log.deleted_by || 'Unknown'}</td>
+                        <td class="p-3"><span class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-[10px] font-semibold">${log.category || '-'}</span></td>
+                        <td class="p-3 font-medium text-slate-800">${log.product_name || '-'}</td>
+                        <td class="p-3"><span class="bg-brand-50 text-brand-700 px-2 py-0.5 rounded text-[10px] font-bold">${log.record_type || 'DELETED'}</span></td>
+                        <td class="p-3">
+                            <span class="${isIn ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'} px-2 py-0.5 rounded font-bold text-[10px]">
+                                ${log.direction || '-'}
+                            </span>
+                        </td>
+                        <td class="p-3 text-right font-bold ${isIn ? 'text-emerald-600' : 'text-rose-600'}">${log.qty !== undefined ? log.qty : '-'}</td>
+                        <td class="p-3 text-right font-semibold text-slate-700">₱${(parseFloat(log.amount) || 0).toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
+                        <td class="p-3 text-slate-500 max-w-xs truncate">${log.notes || '-'}</td>
+                        <td class="p-3 text-slate-600 font-semibold">${log.deleted_by || 'Unknown'}</td>
                     </tr>
                 `;
             }).join('');
