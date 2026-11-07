@@ -1602,12 +1602,64 @@
         }
 
         async function deleteJournalItem(id, rawType) {
-            if (confirm("Delete entry from cloud database?")) {
-                if (rawType === 'MOV') await supabaseClient.from('stock_movements').delete().eq('id', id);
-                else if (rawType === 'EXP') await supabaseClient.from('branch_expenses').delete().eq('id', id);
-                showToast("Journal entry removed.", "info");
-                fetchCloudData();
+            if (!confirm("Delete entry from cloud database?")) return;
+
+            if (rawType === 'MOV') {
+                const movement = stockMovements.find(m => m.id === id);
+                if (movement) {
+                    const prod = products.find(p => p.id === movement.productId) || { name: 'Unknown' };
+
+                    const currentQty = (inventory[movement.branch] && inventory[movement.branch][movement.productId]) || 0;
+                    let correctedQty = movement.direction === 'IN' ? currentQty - movement.qty : currentQty + movement.qty;
+                    if (correctedQty < 0) correctedQty = 0;
+
+                    // Log to deleted_logs so it appears in Recently Deleted
+                    await supabaseClient.from('deleted_logs').insert([{
+                        id: 'DEL-' + Date.now(),
+                        deleted_at: new Date().toISOString(),
+                        deleted_by: currentRole,
+                        record_type: movement.type,
+                        branch: movement.branch,
+                        log_date: movement.date,
+                        category: movement.category,
+                        product_name: prod.name,
+                        direction: movement.direction,
+                        qty: movement.qty,
+                        amount: movement.amount || 0,
+                        notes: movement.notes || ''
+                    }]);
+
+                    await supabaseClient.from('branch_inventory').upsert({
+                        branch: movement.branch,
+                        product_id: movement.productId,
+                        quantity: correctedQty
+                    });
+                }
+                await supabaseClient.from('stock_movements').delete().eq('id', id);
+            } else if (rawType === 'EXP') {
+                const expense = expenses.find(e => e.id === id);
+                if (expense) {
+                    // Log expense deletion into deleted_logs as well
+                    await supabaseClient.from('deleted_logs').insert([{
+                        id: 'DEL-' + Date.now(),
+                        deleted_at: new Date().toISOString(),
+                        deleted_by: currentRole,
+                        record_type: 'EXPENSE',
+                        branch: expense.branch,
+                        log_date: expense.date,
+                        category: 'EXPENSE',
+                        product_name: expense.description,
+                        direction: 'OUT',
+                        qty: 1,
+                        amount: expense.amount || 0,
+                        notes: expense.notes || ''
+                    }]);
+                }
+                await supabaseClient.from('branch_expenses').delete().eq('id', id);
             }
+
+            showToast("Journal entry removed and logged to Recently Deleted.", "info");
+            fetchCloudData();
         }
 
         function renderAdminCashOnHand() {
