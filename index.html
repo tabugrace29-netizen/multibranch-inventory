@@ -1173,7 +1173,6 @@
         }
 
         async function deleteMovement(id) {
-alert("DELETE FUNCTION RUNNING");
             if (!confirm("Delete movement log permanently?")) return;
             const movement = stockMovements.find(m => m.id === id);
             if (!movement) return;
@@ -1191,7 +1190,7 @@ alert("DELETE FUNCTION RUNNING");
 const { data, error } = await supabaseClient
     .from('deleted_logs')
     .insert([{
-        id: movement.id,
+        id: 'DEL-' + Date.now(),
         deleted_at: new Date().toISOString(),
         deleted_by: currentRole,
         record_type: movement.type,
