@@ -1187,6 +1187,17 @@
             }
 
             if (correctedQty < 0) correctedQty = 0;
+await supabaseClient.from('deleted_logs').insert([{
+    id: movement.id,
+    deleted_at: new Date().toISOString(),
+    deleted_by: currentRole,
+    record_type: 'STOCK_MOVEMENT',
+    branch: movement.branch,
+    description: movement.productId,
+    amount: movement.amount || 0,
+    notes: movement.notes || ''
+}]);
+
 
             await supabaseClient.from('branch_inventory').upsert({
                 branch: movement.branch,
@@ -1194,7 +1205,15 @@
                 quantity: correctedQty
             });
 
-            await supabaseClient.from('stock_movements').delete().eq('id', id);
+            await supabaseClient.from('deleted_logs').insert([{
+    id: movement.id,
+    deleted_at: new Date().toISOString(),
+    deleted_by: currentRole,
+    record_type: movement.type,
+    branch: movement.branch
+}]);
+
+await supabaseClient.from('stock_movements').delete().eq('id', id);
 
             showToast("Movement deleted and inventory corrected.", "info");
             fetchCloudData();
