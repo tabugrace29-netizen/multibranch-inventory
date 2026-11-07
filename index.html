@@ -513,9 +513,6 @@
                 <button onclick="switchBranchTab('movement')" id="tab-branch-movement" class="px-4 py-2.5 rounded-xl transition flex items-center gap-2 text-slate-600 hover:bg-slate-50">
                     <i class="fa-solid fa-cart-plus"></i> Record Movement / Sale
                 </button>
-                <button onclick="switchBranchTab('swap')" id="tab-branch-swap" class="px-4 py-2.5 rounded-xl transition flex items-center gap-2 text-slate-600 hover:bg-slate-50">
-                    <i class="fa-solid fa-rotate"></i> Clear Case Swap
-                </button>
                 <button onclick="switchBranchTab('expenses')" id="tab-branch-expenses" class="px-4 py-2.5 rounded-xl transition flex items-center gap-2 text-slate-600 hover:bg-slate-50">
                     <i class="fa-solid fa-receipt"></i> Log Expense
                 </button>
@@ -1112,7 +1109,6 @@ stockMovements = (movData || []).map(m => ({
                 renderBranchInventory();
                 populateBranchProductSelects();
                 renderBranchMovementHistory();
-                renderBranchSwapHistory();
                 renderBranchExpenses();
                 renderBranchRestockLog();
             }
@@ -1639,7 +1635,7 @@ stockMovements = (movData || []).map(m => ({
         // BRANCH TAB ACTIONS (SUPABASE SYNCED)
         // =========================================================================
         function switchBranchTab(tab) {
-            ['dashboard', 'inventory', 'movement', 'swap', 'expenses', 'restock'].forEach(t => {
+           ['dashboard', 'inventory', 'movement', 'expenses', 'restock'].forEach(t => {
                 const navBtn = document.getElementById(`tab-branch-${t}`);
                 const content = document.getElementById(`branchTab${capitalize(t)}`);
                 if (t === tab) {
