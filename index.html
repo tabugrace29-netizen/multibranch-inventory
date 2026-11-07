@@ -859,6 +859,7 @@
         let stockMovements = [];
         let restockRequests = [];
         let expenses = [];
+        let deletedLogs = [];
 
         window.onload = async function() {
             setTodayDateInputs();
@@ -1032,6 +1033,12 @@
                     notes: e.notes
                 }));
 
+                const { data: delData } = await supabaseClient
+                    .from('deleted_logs')
+                    .select('*')
+                    .order('deleted_at', { ascending: false });
+                deletedLogs = delData || [];
+
                 refreshUI();
             } catch (err) {
                 showToast("Failed to sync cloud data.", "error");
@@ -1049,6 +1056,7 @@
                 renderAdminStockTracker();
                 renderAdminSalesSummary();
                 renderAdminCashOnHand();
+                renderDeletedLogs();
             } else {
                 renderBranchHeaderCash();
                 renderBranchDashboard();
@@ -1187,17 +1195,14 @@
             }
 
             if (correctedQty < 0) correctedQty = 0;
-const { data, error } = await supabaseClient
-    .from('deleted_logs')
-    .insert([{
-        id: 'DEL-' + Date.now(),
-        deleted_at: new Date().toISOString(),
-        deleted_by: currentRole,
-        record_type: movement.type,
-        branch: movement.branch
-    }]);
 
-
+            await supabaseClient.from('deleted_logs').insert([{
+                id: 'DEL-' + Date.now(),
+                deleted_at: new Date().toISOString(),
+                deleted_by: currentRole,
+                record_type: movement.type,
+                branch: movement.branch
+            }]);
 
             await supabaseClient.from('branch_inventory').upsert({
                 branch: movement.branch,
@@ -1205,7 +1210,7 @@ const { data, error } = await supabaseClient
                 quantity: correctedQty
             });
 
-await supabaseClient.from('stock_movements').delete().eq('id', id);
+            await supabaseClient.from('stock_movements').delete().eq('id', id);
 
             showToast("Movement deleted and inventory corrected.", "info");
             fetchCloudData();
@@ -1219,6 +1224,30 @@ await supabaseClient.from('stock_movements').delete().eq('id', id);
                 showToast(`Deleted ${checked.length} movement logs.`, "info");
                 fetchCloudData();
             }
+        }
+
+        function renderDeletedLogs() {
+            const tbody = document.getElementById('deletedLogsTableBody');
+            if (!tbody) return;
+
+            if (deletedLogs.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-slate-400">No deleted records found.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = deletedLogs.map(log => {
+                const formattedDate = log.deleted_at ? new Date(log.deleted_at).toLocaleString() : '-';
+                return `
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="p-3 text-slate-700 font-medium">${formattedDate}</td>
+                        <td class="p-3"><span class="bg-rose-50 text-rose-700 px-2 py-0.5 rounded text-[10px] font-bold">${log.record_type || 'DELETED'}</span></td>
+                        <td class="p-3 font-bold text-slate-900">${log.branch || 'ADMIN'}</td>
+                        <td class="p-3 text-slate-800">Record ID: ${log.id}</td>
+                        <td class="p-3 text-right text-slate-600">-</td>
+                        <td class="p-3 text-slate-500">Deleted by: ${log.deleted_by || 'Unknown'}</td>
+                    </tr>
+                `;
+            }).join('');
         }
 
         function exportStockMovementsCSV() {
