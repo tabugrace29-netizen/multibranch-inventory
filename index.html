@@ -1197,8 +1197,6 @@ const { data, error } = await supabaseClient
         branch: movement.branch
     }]);
 
-console.log("DELETE LOG INSERT:", data);
-console.log("DELETE LOG ERROR:", error);
 
 
             await supabaseClient.from('branch_inventory').upsert({
