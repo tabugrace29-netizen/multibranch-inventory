@@ -1031,6 +1031,7 @@
                     paymentMethod: m.payment_method,
                     notes: m.notes
                 }));
+console.log("Loaded stock movements:", stockMovements.length);
 
                 const { data: reqData } = await supabaseClient
                     .from('restock_requests')
