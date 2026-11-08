@@ -1016,7 +1016,7 @@
     .from('stock_movements')
     .select('*', { count: 'exact' })
     .order('date', { ascending: false })
-    .range(0, 2000);
+    .range(0, 1068);
 
 console.log("Supabase count:", count);
 console.log("movData length:", movData?.length);
@@ -1888,6 +1888,10 @@ console.log("movData length:", movData ? movData.length : 0);
             const productId = document.getElementById('bMovProduct').value;
             const qty = parseInt(document.getElementById('bMovQty').value) || 1;
             const amount = parseFloat(document.getElementById('bMovAmount').value) || 0;
+if (type === 'SOLD' && amount <= 0) {
+    showToast("Total Selling Price cannot be zero.", "error");
+    return;
+}
             const downpayment = parseFloat(document.getElementById('bMovDownpayment').value) || 0;
             const paymentMethod = document.getElementById('bMovPaymentMethod').value;
             const notes = document.getElementById('bMovNotes').value.trim();
