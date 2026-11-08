@@ -1016,7 +1016,7 @@
     .from('stock_movements')
     .select('*', { count: 'exact' })
     .order('date', { ascending: false })
-    .range(0, 5000);
+    .range(0, 1068);
 
 console.log("Supabase count:", count);
 console.log("movData length:", movData?.length);
