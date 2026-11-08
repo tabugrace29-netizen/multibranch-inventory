@@ -1033,6 +1033,7 @@
                     notes: m.notes
                 }));
 console.log("Loaded stock movements:", stockMovements.length);
+console.log("movData length:", movData ? movData.length : 0);
 
                 const { data: reqData } = await supabaseClient
                     .from('restock_requests')
