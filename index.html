@@ -1012,11 +1012,15 @@
                     inventory[row.branch][row.product_id] = row.quantity;
                 });
 
-                const { data: movData } = await supabaseClient
+                const { data: movData, error, count } = await supabaseClient
     .from('stock_movements')
-    .select('*')
+    .select('*', { count: 'exact' })
     .order('date', { ascending: false })
     .range(0, 5000);
+
+console.log("Supabase count:", count);
+console.log("movData length:", movData?.length);
+console.log("error:", error);
 
                 stockMovements = (movData || []).map(m => ({
                     id: m.id,
