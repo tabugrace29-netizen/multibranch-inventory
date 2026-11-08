@@ -1013,9 +1013,10 @@
                 });
 
                 const { data: movData } = await supabaseClient
-                    .from('stock_movements')
-                    .select('*')
-                    .order('date', { ascending: false });
+    .from('stock_movements')
+    .select('*')
+    .order('date', { ascending: false })
+    .range(0, 5000);
 
                 stockMovements = (movData || []).map(m => ({
                     id: m.id,
